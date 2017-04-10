@@ -114,6 +114,7 @@ public class Walker implements Serializable {
 	 */
 	public void evolve() {
 		// TODO: Evolve - based on the zoo.
+		zoo.evolve(rng);
 	}
 
 	/**

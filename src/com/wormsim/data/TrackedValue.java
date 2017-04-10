@@ -8,6 +8,7 @@ package com.wormsim.data;
 import com.wormsim.animals.DevelopmentFunction;
 import com.wormsim.animals.ScoringFunction;
 import java.util.ArrayList;
+import org.apache.commons.math3.random.RandomGenerator;
 import static org.apache.commons.math3.util.FastMath.pow;
 import static org.apache.commons.math3.util.FastMath.sqrt;
 
@@ -38,6 +39,13 @@ public interface TrackedValue {
 	public void retain();
 
 	/**
+	 * Alters the value in a controlled manner.
+	 *
+	 * @param rng The random number generator.
+	 */
+	public void evolve(RandomGenerator rng);
+
+	/**
 	 * A double value that may be tracked and recorded or optimised.
 	 */
 	public static class TrackedDouble implements TrackedValue {
@@ -59,6 +67,7 @@ public interface TrackedValue {
 			this.prev_value = this.value = val;
 			this.all_related = new ArrayList<>();
 			// this.all_related.add(this);
+			// TODO: Max, Min, Std. Dev of Transition, transition type?
 		}
 		private final ArrayList<TrackedDouble> all_related;
 		private final ArrayList<Double> history;
@@ -76,6 +85,12 @@ public interface TrackedValue {
 			TrackedDouble t = new TrackedDouble(this);
 			all_related.add(t);
 			return t;
+		}
+
+		@Override
+		public void evolve(RandomGenerator rng) {
+			// TODO: Make there be a more controlled treatment of this variable.
+			value = rng.nextGaussian() + value;
 		}
 
 		/**

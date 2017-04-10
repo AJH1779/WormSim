@@ -9,6 +9,7 @@ import com.wormsim.data.TrackedValue;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Logger;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * An object which houses the definitions of the various species used for a
@@ -111,6 +112,11 @@ public class AnimalZoo implements TrackedValue {
 		});
 		// TrackedValues need to be added.
 		return zoo;
+	}
+
+	@Override
+	public void evolve(RandomGenerator rng) {
+		this.tracked_values.values().forEach((v) -> v.evolve(rng));
 	}
 
 	/**

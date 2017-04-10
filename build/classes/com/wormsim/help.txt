@@ -1,0 +1,29 @@
+==================================START HELP====================================
+These are the commands that may be used for the command line launch of this
+program. Note that these will override the values retrieved from the "input.txt"
+file where applicable.
+
+ --help      + Displays this dialogue.
+  -h         |
+
+ --threads N + Sets the number of threads used to N. Allows a set number or
+  -t N       | formula with the keyword MAX denoting the number of cores the
+             | Java Virtual Machine has access to at runtime.
+             | Note: On Intel processors with hyper-threading, performance gains
+             |       may be seen by running with the physical core number
+             |       rather than the number of virtual threads, which must be
+             |       specified.
+
+ --newrun N  + Sets the new run flag to N which must be a boolean value (either
+  -n N       | true/t/1 or false/f/0, case insensitive).
+
+ --timeout T + Runs for the specified time in milliseconds before stopping. This
+             | may be used for scheduling processor time and will save a
+             | checkpoint to resume at the end of the time period within
+             | "{out.txt}".
+
+ --dir D     + Defines the working directory of the program, that is the
+  -d D       | location containing the input files and where the output files
+             | will be stored. If there are spaces in the path, ensure the
+             | string is enclosed in quotation marks (").
+===================================END HELP=====================================

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/data/SimulationOptions.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/data/GroupDistribution.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/Main.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/wormsim.txt</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/data/SimulationCommands.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/animals/AnimalGroup.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/help.txt</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/simulation/TrackedScalar.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/simulation/Walker.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/animals/AnimalDevelopment.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/simulation/Simulation.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/simulation/SimulationThread.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/animals/AnimalStrain.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/data/AnimalZoo.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/animals/AnimalStage.java</file>
+            <file>file://stafs-nhr-01.ccad.canterbury.ac.uk/ah810/Documents/NetBeansProjects/WormSim2/src/com/wormsim/data/SimulationConditions.java</file>
+        </group>
+    </open-files>
+</project-private>

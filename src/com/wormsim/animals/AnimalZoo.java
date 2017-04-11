@@ -20,6 +20,7 @@ import org.apache.commons.math3.random.RandomGenerator;
  */
 public class AnimalZoo implements TrackedValue {
 	private static final Logger LOG = Logger.getLogger(AnimalZoo.class.getName());
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Creates a new empty zoo. It must be done this way.
@@ -29,8 +30,15 @@ public class AnimalZoo implements TrackedValue {
 		this(0);
 	}
 
-	AnimalZoo(int pheromone_count) {
-		this.pheromone_count = pheromone_count;
+	/**
+	 * Constructor for local use really.
+	 *
+	 * TODO: Modify this?
+	 *
+	 * @param p_pheromone_no
+	 */
+	AnimalZoo(int p_pheromone_no) {
+		this.pheromone_count = p_pheromone_no;
 		this.developments = new HashMap<>();
 		this.stages = new HashMap<>();
 		this.strains = new HashMap<>();
@@ -60,15 +68,15 @@ public class AnimalZoo implements TrackedValue {
 	 * been registered and a stage with the same full name has not already been
 	 * registered. Returns true if added, false otherwise.
 	 *
-	 * @param stage The stage to add to the zoo.
+	 * @param p_stage The stage to add to the zoo.
 	 *
 	 * @return True if added, false otherwise.
 	 *
 	 * @see AnimalStage#getFullName() For the key name
 	 */
-	private boolean addAnimalStage(AnimalStage stage) {
-		return this.strains.containsValue(stage.getStrain()) && this.stages
-						.putIfAbsent(stage.getFullName(), stage) == null;
+	private boolean addAnimalStage(AnimalStage p_stage) {
+		return this.strains.containsValue(p_stage.getStrain()) && this.stages
+						.putIfAbsent(p_stage.getFullName(), p_stage) == null;
 	}
 
 	/**
@@ -76,12 +84,12 @@ public class AnimalZoo implements TrackedValue {
 	 * same name has not already been registered. Returns true if added, false
 	 * otherwise.
 	 *
-	 * @param strain The strain to add.
+	 * @param p_strain The strain to add.
 	 *
 	 * @return True if added, false otherwise.
 	 */
-	private boolean addAnimalStrain(AnimalStrain strain) {
-		return this.strains.putIfAbsent(strain.getName(), strain) == null;
+	private boolean addAnimalStrain(AnimalStrain p_strain) {
+		return this.strains.putIfAbsent(p_strain.getName(), p_strain) == null;
 	}
 
 	@Override
@@ -94,11 +102,11 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * TODO: Make this more general by requiring the rules of the simulation.
 	 *
-	 * @param pheromone_no The number of pheromone channels to use.
+	 * @param p_pheromone_no The number of pheromone channels to use.
 	 *
 	 * @return A new animal zoo.
 	 */
-	public AnimalZoo create(int pheromone_no) {
+	public AnimalZoo create(int p_pheromone_no) {
 		AnimalZoo zoo = new AnimalZoo();
 		strains.forEach((k, v) -> {
 			zoo.addAnimalStrain(new AnimalStrain(v));
@@ -115,8 +123,8 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public void evolve(RandomGenerator rng) {
-		this.tracked_values.values().forEach((v) -> v.evolve(rng));
+	public void evolve(RandomGenerator p_rng) {
+		this.tracked_values.values().forEach((v) -> v.evolve(p_rng));
 	}
 
 	/**
@@ -125,14 +133,14 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * Note: Is case sensitive.
 	 *
-	 * @param key The full name of the animal stage to retrieve
+	 * @param p_key The full name of the animal stage to retrieve
 	 *
 	 * @return The named animal stage, or null.
 	 *
 	 * @see AnimalStage#getFullName() The full name key.
 	 */
-	public AnimalStage getAnimalStage(String key) {
-		return this.stages.get(key);
+	public AnimalStage getAnimalStage(String p_key) {
+		return this.stages.get(p_key);
 	}
 
 	/**
@@ -141,12 +149,12 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * Note: Is case sensitive.
 	 *
-	 * @param key
+	 * @param p_key
 	 *
 	 * @return
 	 */
-	public AnimalStrain getAnimalStrain(String key) {
-		return this.strains.get(key);
+	public AnimalStrain getAnimalStrain(String p_key) {
+		return this.strains.get(p_key);
 	}
 
 	@Override
@@ -163,6 +171,7 @@ public class AnimalZoo implements TrackedValue {
 	 * A constructor for creating animal zoo objects.
 	 */
 	public static class Builder extends AnimalZoo {
+		private static final long serialVersionUID = 1L;
 
 		/**
 		 * Creates a new builder for an empty zoo.
@@ -172,21 +181,22 @@ public class AnimalZoo implements TrackedValue {
 		}
 
 		/**
-		 * Adds the animal stage with the specified full name if it has not already
-		 * been added and the parent strain has already been added.
+		 * Adds the animal stage for the specified strain and the specified name of
+		 * the stage.
 		 *
 		 * Note: Is case sensitive.
 		 *
-		 * @param name The full stage name
+		 * @param p_strain The name of the strain
+		 * @param p_name   The name of the stage
 		 *
 		 * @return True if added, false otherwise.
 		 */
-		public boolean addAnimalStage(String name) {
+		public boolean addAnimalStage(String p_strain, String p_name) {
 			Optional<AnimalStrain> strain = this.strains.values().stream().filter(
-							(str) -> name.startsWith(str.getName())).findFirst();
-			if (strain.isPresent() && !this.stages.containsKey(name)) {
+							(str) -> str.getName().equals(p_strain)).findFirst();
+			if (strain.isPresent() && !this.stages.containsKey(p_name)) {
 				// TODO: Make this a correct statement.
-				return this.stages.putIfAbsent(name, new AnimalStage(name.substring(
+				return this.stages.putIfAbsent(p_name, new AnimalStage(p_name.substring(
 								strain.get().getName().length()), strain.get())) == null;
 			} else {
 				return false;
@@ -197,26 +207,26 @@ public class AnimalZoo implements TrackedValue {
 		 * Adds the specified strain to the zoo, so long a strain with the same name
 		 * hasn't already been added.
 		 *
-		 * @param name The name of the strain
+		 * @param p_name The name of the strain
 		 *
 		 * @return True if added, false otherwise.
 		 */
-		public boolean addAnimalStrain(String name) {
-			return super.addAnimalStrain(new AnimalStrain(name, 0));
+		public boolean addAnimalStrain(String p_name) {
+			return super.addAnimalStrain(new AnimalStrain(p_name, 0));
 		}
 
 		/**
 		 * Adds a new animal transition using the specified string which describes
 		 * it accepts the four types as detailed in <code>AnimalDevelopment</code>.
 		 *
-		 * @param str The string denoting the transition.
+		 * @param p_str The string denoting the transition.
 		 *
 		 * @return True if the transition was successfully added, false otherwise.
 		 */
-		public boolean addAnimalTransition(String str) {
-			int index = str.indexOf('(');
-			String prefix = str.substring(0, index - 1);
-			String[] args = str.substring(index, str.length() - 2).split(",");
+		public boolean addAnimalTransition(String p_str) {
+			int index = p_str.indexOf('(');
+			String prefix = p_str.substring(0, index - 1);
+			String[] args = p_str.substring(index, p_str.length() - 2).split(",");
 			AnimalStage from = getAnimalStage(args[0]);
 			if (from.getAnimalDevelopment() != null) {
 				return false;
@@ -258,7 +268,7 @@ public class AnimalZoo implements TrackedValue {
 				default:
 					throw new IllegalArgumentException(
 									"Unrecognised development choice, see handbook for details. "
-									+ "Provided \"" + str + "\".");
+									+ "Provided \"" + p_str + "\".");
 			}
 		}
 	}

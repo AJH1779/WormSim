@@ -7,6 +7,7 @@ package com.wormsim.data;
 
 import com.wormsim.animals.DevelopmentFunction;
 import com.wormsim.animals.ScoringFunction;
+import java.io.Serializable;
 import java.util.ArrayList;
 import org.apache.commons.math3.random.RandomGenerator;
 import static org.apache.commons.math3.util.FastMath.pow;
@@ -18,7 +19,7 @@ import static org.apache.commons.math3.util.FastMath.sqrt;
  * @author ah810
  * @version 0.0.1
  */
-public interface TrackedValue {
+public interface TrackedValue extends Serializable {
 	/**
 	 * Provides an independent copy of this tracked value.
 	 *
@@ -49,6 +50,8 @@ public interface TrackedValue {
 	 * A double value that may be tracked and recorded or optimised.
 	 */
 	public static class TrackedDouble implements TrackedValue {
+		private static final long serialVersionUID = 1L;
+
 		private TrackedDouble(TrackedDouble t) {
 			this.value = t.value;
 			this.all_related = t.all_related;
@@ -71,8 +74,8 @@ public interface TrackedValue {
 		}
 		private final ArrayList<TrackedDouble> all_related;
 		private final ArrayList<Double> history;
-		private double value;
 		private double prev_value;
+		private double value;
 
 		/**
 		 * Creates a copy of this tracked value. Note that the copied object affects
@@ -103,9 +106,10 @@ public interface TrackedValue {
 		}
 
 		/**
-		 * Returns an estimate of the variance of this class of tracked values.
+		 * Returns an estimate of the variance of this class of related tracked
+		 * values.
 		 *
-		 * @return The variance.
+		 * @return The Between Variance.
 		 */
 		public double getBetweenVariance() {
 			double psi__ = all_related.stream().mapToDouble((arr) -> arr.history
@@ -116,6 +120,12 @@ public interface TrackedValue {
 							* arr.history.size() / (all_related.size() - 1)).sum();
 		}
 
+		/**
+		 * Returns an estimate for the within variance as the mean of this class of
+		 * related tracked values.
+		 *
+		 * @return The Within Variance.
+		 */
 		public double getMeanWithinVariance() {
 			return all_related.stream().mapToDouble((arr) -> arr.getWithinVariance()
 							/ all_related.size()).sum();

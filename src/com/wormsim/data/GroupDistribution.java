@@ -81,30 +81,42 @@ public class GroupDistribution {
 									.substring(index, comma_index - 1)),
 									Integer.valueOf(str.substring(comma_index).trim()));
 				}
-				default:
+				default: {
 					throw new IllegalArgumentException(
 									"Unrecognised distribution form, see handbook for details. "
 									+ "Provided \"" + str + "\".");
+				}
 			}
 		}
 
 	}
 
-	public GroupDistribution(AnimalZoo zoo, HashMap<String, String> data) {
+	/**
+	 * Creates a new group distribution using the provided zoo as the basis and
+	 * the data structure for forming the sampling distributions. Unfeatured
+	 * groups in the
+	 *
+	 * @param data A map of the stages to their initial distributions.
+	 */
+	public GroupDistribution(HashMap<String, String> data) {
 		dists = new HashMap<>(data.size());
 		data.forEach((k, v) -> {
-			dists.put(zoo.getAnimalStage(k), stringToIntegerDistribution(v));
+			dists.put(k, stringToIntegerDistribution(v));
 		});
 	}
-	private final HashMap<AnimalStage, IntegerDistribution> dists;
+	private final HashMap<String, IntegerDistribution> dists;
 
 	/**
 	 * Provides a sample of the groups to be used taken from the provided zoo.
-	 * @return 
+	 *
+	 * @param zoo
+	 *
+	 * @return
 	 */
 	public Collection<AnimalGroup> sample(AnimalZoo zoo) {
 		HashSet<AnimalGroup> groups = new HashSet<>(dists.size());
-		dists.forEach((k, v) -> groups.add(new AnimalGroup(k, v.sample())));
+		dists.forEach((k, v) -> groups.add(new AnimalGroup(zoo.getAnimalStage(k), v
+						.sample())));
 		return groups;
 	}
 }

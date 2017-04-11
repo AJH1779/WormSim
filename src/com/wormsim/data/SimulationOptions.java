@@ -6,6 +6,9 @@
 package com.wormsim.data;
 
 import com.wormsim.animals.AnimalZoo;
+import com.wormsim.utils.Context;
+import com.wormsim.utils.Context.BasicContext;
+import com.wormsim.utils.StringFormula;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,6 +39,8 @@ public class SimulationOptions {
 	public static final String ANIMAL_ZOO = "animal_zoo";
 	/**
 	 * A string denoting the keyword for the assay iterations number.
+	 *
+	 * TODO: Improve what this means and how to check it.
 	 */
 	public static final String ASSAY_ITERATION_NO = "assay_iteration_no";
 	/**
@@ -159,17 +164,66 @@ public class SimulationOptions {
 						break;
 					}
 					case ANIMAL_ZOO: {
-						// In this case there is more to it
+						if (!line.endsWith("{")) {
+							throw new IOException(
+											"Animal Zoo line does not end with open curly braces!");
+						}
 						line_no++;
 						AnimalZoo.Builder zoo = new AnimalZoo.Builder();
-						for (String line2 = in.readLine().trim(); line != null; line = in
+						BasicContext context = Context.GLOBAL_CONTEXT.clone();
+						for (line = in.readLine(); line != null; line = in
 										.readLine().trim(), line_no++) {
-							if (line2.startsWith("strain ")) {
-								zoo.addAnimalStrain(line2.substring(6).trim());
-							} else if (line2.startsWith("stage ")) {
-
-							} else {
-
+							// Ignore comment lines.
+							if (line.startsWith("#")) {
+								continue;
+							}
+							// Filter based on pre-defined keywords.
+							if (line.startsWith("strain ")) {
+								if (!line.endsWith("{")) {
+									throw new IOException(
+													"Unable to read line, does not end in {: " + line);
+								}
+								String strain = line.substring(7, line.length() - 2)
+												.trim();
+								zoo.addAnimalStrain(strain);
+								for (line = in.readLine(); line != null; line = in
+												.readLine().trim(), line_no++) {
+									if (line.startsWith("#")) {
+										continue;
+									}
+									if (line.startsWith("stage ")) {
+										zoo.addAnimalStage(strain, line.substring(6).trim());
+									} else if (line.startsWith("dev ")) {
+										zoo.addAnimalTransition(line.substring(4).trim());
+									} else if (!line.isEmpty()) {
+										throw new IOException("Could not interpret the line: "
+														+ line);
+									}
+									if (line.endsWith("}")) {
+										break;
+									}
+								}
+							} else if (line.startsWith("}")) {
+								break;
+							} else if (line.contains("=")) {
+								// Define a constant
+								int equals = line.indexOf('=');
+								context.addVariable(line.substring(0, equals - 1), StringFormula
+												.evaluate(line.substring(equals), context));
+							} else if (line.contains("~")) {
+								throw new IOException("Distributions are not yet implemented: "
+												+ line);
+							} else if (!line.isEmpty()) {
+								throw new IOException("Could not interpret the line: "
+												+ line);
+							}
+							if (line == null) {
+								throw new IOException(
+												"Reached end of file prematurely within strain "
+												+ "block!");
+							}
+							if (line.endsWith("}")) {
+								break;
 							}
 						}
 						data.put(key, zoo);
@@ -282,7 +336,7 @@ public class SimulationOptions {
 		this.walker_no = (Integer) data.get(WALKER_NO);
 		this.seed = data.containsKey(SEED)
 						? (Long) data.get(SEED)
-						: System.nanoTime();
+						: System.currentTimeMillis();
 
 		// TODO: Need something better than the get routine so that it can be properly recorded as something going wrong.
 		this.burn_in_no = (Integer) data.get(BURN_IN_NO);

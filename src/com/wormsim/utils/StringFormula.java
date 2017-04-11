@@ -9,6 +9,7 @@ import com.wormsim.utils.Context.BasicContext;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import java.util.HashMap;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,8 @@ import java.util.regex.Pattern;
  * @author ah810
  */
 public class StringFormula {
+	private static final Logger LOG = Logger.getLogger(StringFormula.class
+					.getName());
 	public static final Pattern ADD_PATTERN = Pattern.compile(
 					"((?<=^|\\/|\\*|-|\\+)[^+\\-*\\/]*\\+[^+\\-*\\/]*(?=$|\\/|\\*|-|\\+))");
 	public static final Pattern AND_PATTERN = Pattern.compile(

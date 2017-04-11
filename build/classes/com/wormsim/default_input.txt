@@ -24,8 +24,8 @@ recording_iteration_no = 1000
 # TODO: Improve this.
 assay_iteration_no = 100
 
-# The number of iterations to wait between taking checkpoints for resuming if the
-# program fails.
+# The number of iterations to wait between taking checkpoints for resuming if
+# the program fails.
 checkpoint_no = 500
 # The number of iterations to wait between recording iterations.
 record_freq_no = 0
@@ -62,7 +62,8 @@ animal_zoo = {
 		stage L2d 1
 		stage Dauer 0
 
-		dev branching (L1, L2, L2d) ~ logit(food + pheromone[#] + food . food + food . pheromone[#] + pheromone[#] . pheromone[#])
+		dev branching (L1, L2, L2d) ~ logit(1 + food + pheromone[#] + food . food +
+															food . pheromone[#] + pheromone[#] . pheromone[#])
 		dev linear (L2d, Dauer) = 1
 		dev laying (L2, null, L3) = 100
 		# time is a pre-defined variable that calls upon the current expired time.

@@ -8,13 +8,20 @@ package com.wormsim;
 import com.wormsim.data.SimulationCommands;
 import com.wormsim.data.SimulationOptions;
 import com.wormsim.simulation.Simulation;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -61,8 +68,8 @@ public class Main {
 	/**
 	 * Outputs the help dialogue to the command line which outlines all of the
 	 * commands, their arguments, and what they do. This is an output of the
-	 * program header followed by the help text defined in header.txt and
-	 * help.txt respectively.
+	 * program header followed by the help text defined in header.txt and help.txt
+	 * respectively.
 	 *
 	 * @see header.txt for the header text.
 	 * @see help.txt for the full help text.
@@ -83,17 +90,13 @@ public class Main {
 	 * Called when the program is launched and processes through the command line
 	 * arguments. The program stops running if one of the argument commands are
 	 * for the help text.
-	 * 
-	 * @param args the command line arguments
 	 *
-	 * @throws java.io.IOException When there is a problem reading one of the
-	 *                             input files.
+	 * @param args the command line arguments
 	 *
 	 * @see help.txt For the commands that are accepted on the command line.
 	 */
 	public static void main(String[] args)
-					throws IllegalArgumentException,
-								 IOException {
+					throws IllegalArgumentException {
 		// Convert the arguments into command lists
 		HashMap<String, List<String>> data = new HashMap<>(args.length);
 		String current_cmd = null;
@@ -117,8 +120,34 @@ public class Main {
 			help();
 			System.exit(0);
 		}
-		System.exit(-1);
-		SimulationOptions ops = new SimulationOptions(new SimulationCommands(data));
-		new Simulation(ops).run();
+		SimulationCommands cmds = new SimulationCommands(data);
+		try {
+			SimulationOptions ops = new SimulationOptions(cmds);
+			new Simulation(ops).run();
+		} catch (FileNotFoundException ex) {
+			LOG.log(Level.SEVERE, "No input.txt found!");
+			File file = new File(cmds.getDirectory(), "input.txt");
+			if (file.exists()) {
+				LOG.log(Level.SEVERE, "Couldn't create file as it already exists!");
+			} else {
+				// A sloppy write out.
+				// TODO: Cleanup and ensure is right.
+				try (InputStream in = Main.class.getResourceAsStream(
+								"/com/wormsim/default_input.txt");
+								OutputStream out = new BufferedOutputStream(
+												new FileOutputStream(file))) {
+					byte[] buffer = new byte[4096];
+					int read_bytes;
+					while ((read_bytes = in.read(buffer)) > 0) {
+						out.write(buffer);
+					}
+					LOG.log(Level.SEVERE, "Created input.txt.");
+				} catch (IOException ex2) {
+					LOG.log(Level.SEVERE, "Couldn't create file.", ex2);
+				}
+			}
+		} catch (IOException ex) {
+			LOG.log(Level.SEVERE, null, ex);
+		}
 	}
 }

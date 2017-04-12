@@ -5,12 +5,12 @@
  */
 package com.wormsim.data;
 
-import com.wormsim.animals.AnimalZoo;
 import com.wormsim.animals.AnimalGroup;
-import com.wormsim.animals.AnimalStage;
+import com.wormsim.animals.AnimalZoo;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.logging.Logger;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
@@ -63,19 +63,19 @@ public class GroupDistribution {
 			return new EnumeratedIntegerDistribution(new int[]{Integer.valueOf(str)});
 		} else {
 			int index = str.indexOf('(');
-			String prefix = str.substring(0, index - 1);
+			String prefix = str.substring(0, index - 1).toLowerCase(Locale.ROOT);
 			switch (prefix) {
-				case "B":
-				case "Binom":
-				case "Binomial": {
+				case "b":
+				case "binom":
+				case "binomial": {
 					int comma_index = str.indexOf(',', index);
 					return new BinomialDistribution(Integer.valueOf(str
 									.substring(index, comma_index - 1)),
 									Double.valueOf(str.substring(comma_index).trim()));
 				}
-				case "U":
-				case "Uni":
-				case "Uniform": {
+				case "u":
+				case "uni":
+				case "uniform": {
 					int comma_index = str.indexOf(',', index);
 					return new UniformIntegerDistribution(Integer.valueOf(str
 									.substring(index, comma_index - 1)),
@@ -115,8 +115,9 @@ public class GroupDistribution {
 	 */
 	public Collection<AnimalGroup> sample(AnimalZoo zoo) {
 		HashSet<AnimalGroup> groups = new HashSet<>(dists.size());
-		dists.forEach((k, v) -> groups.add(new AnimalGroup(zoo.getAnimalStage(k), v
-						.sample())));
+		dists.forEach((k, v) -> groups.add(new AnimalGroup(zoo.getAnimalStage(k),
+						v
+										.sample())));
 		return groups;
 	}
 }

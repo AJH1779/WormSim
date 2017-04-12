@@ -91,22 +91,23 @@ public class SimulationConditions {
 			return new ConstantRealDistribution(Double.valueOf(str));
 		} else {
 			int index = str.indexOf('(');
-			String prefix = str.substring(0, index - 1);
+			String prefix = str.substring(0, index).toLowerCase(Locale.ROOT);
 			switch (prefix) {
-				case "N":
-				case "Norm":
-				case "Normal": {
+				case "n":
+				case "norm":
+				case "normal": {
 					int comma_index = str.indexOf(',', index);
 					return new NormalDistribution(Double.valueOf(str
-									.substring(index, comma_index - 1)),
-									Double.valueOf(str.substring(comma_index).trim()));
+									.substring(index + 1, comma_index).trim()),
+									Double.valueOf(str
+													.substring(comma_index + 1, str.length() - 2).trim()));
 				}
-				case "U":
-				case "Uni":
-				case "Uniform": {
+				case "u":
+				case "uni":
+				case "uniform": {
 					int comma_index = str.indexOf(',', index);
 					return new UniformRealDistribution(Double.valueOf(str
-									.substring(index, comma_index - 1)),
+									.substring(index + 1, comma_index - 1)),
 									Double.valueOf(str.substring(comma_index).trim()));
 				}
 				default:
@@ -136,16 +137,16 @@ public class SimulationConditions {
 						.readLine(), line_no[0]++) {
 			if (line.contains("~")) {
 				int index2 = line.indexOf('~');
-				String key2 = line.substring(0, index2 - 1).trim().toLowerCase(
+				String key2 = line.substring(0, index2).trim().toLowerCase(
 								Locale.getDefault());
-				String entry2 = line.substring(index2).trim();
+				String entry2 = line.substring(index2 + 1).trim();
 				data.put(key2, entry2);
 			}
 		}
 		this.food_dist = stringToRealDistribution(data.get("food"));
 		int max = data.keySet().stream().filter((str) -> str
 						.matches("pheromone.*"))
-						.reduce(Integer.MIN_VALUE, (ai, b) -> {
+						.reduce(0, (ai, b) -> {
 							int bi = Integer.valueOf(b.substring(b.indexOf('['), b
 											.indexOf(']') - 1).trim());
 							return Math.max(ai, bi);

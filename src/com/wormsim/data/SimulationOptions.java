@@ -132,9 +132,9 @@ public class SimulationOptions implements Serializable {
 				if (index == -1) {
 					continue;
 				}
-				String key = line.substring(0, index - 1).trim().toLowerCase(Locale
+				String key = line.substring(0, index).trim().toLowerCase(Locale
 								.getDefault());
-				String entry = line.substring(index, line.indexOf('#')).trim();
+				String entry = line.substring(index + 1).trim();
 				switch (key) {
 					case THREAD_NO:
 					case WALKER_NO:

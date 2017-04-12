@@ -8,6 +8,7 @@ package com.wormsim.animals;
 import com.wormsim.data.TrackedValue.TrackedDecisionFunction;
 import com.wormsim.data.TrackedValue.TrackedScoringFunction;
 import com.wormsim.simulation.SimulationThread;
+import java.util.stream.Stream;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -52,6 +53,13 @@ public abstract class AnimalDevelopment {
 	 */
 	public abstract void develop(SimulationThread.DevelopmentInterface iface,
 															 int count, RandomGenerator rng);
+
+	/**
+	 * Returns a stream of the stages involved in this development step.
+	 *
+	 * @return
+	 */
+	public abstract Stream<AnimalStage> getInvolvedStages();
 
 	/**
 	 * Returns the animal stage the development originates from.
@@ -146,6 +154,11 @@ public abstract class AnimalDevelopment {
 			return decision;
 		}
 
+		@Override
+		public Stream<AnimalStage> getInvolvedStages() {
+			return Stream.of(this.getPrevStage(), next, alt_next);
+		}
+
 		/**
 		 * Returns the next development stage.
 		 *
@@ -212,6 +225,11 @@ public abstract class AnimalDevelopment {
 				iface.addGroup(new AnimalGroup(egg_next, decision
 								.applyAsInt(iface.getSamplingInterface(), count, rng)));
 			}
+		}
+
+		@Override
+		public Stream<AnimalStage> getInvolvedStages() {
+			return Stream.of(this.getPrevStage(), next, egg_next);
 		}
 
 		/**
@@ -292,6 +310,11 @@ public abstract class AnimalDevelopment {
 			return decision;
 		}
 
+		@Override
+		public Stream<AnimalStage> getInvolvedStages() {
+			return Stream.of(this.getPrevStage(), next);
+		}
+
 		/**
 		 * Returns the next stage of the development.
 		 *
@@ -337,6 +360,11 @@ public abstract class AnimalDevelopment {
 		public void develop(SimulationThread.DevelopmentInterface iface, int count,
 												RandomGenerator rng) {
 			decision.applyAsDouble(iface.getScoringInterface(), count);
+		}
+
+		@Override
+		public Stream<AnimalStage> getInvolvedStages() {
+			return Stream.of(this.getPrevStage());
 		}
 
 		/**

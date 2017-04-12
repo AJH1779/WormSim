@@ -69,7 +69,7 @@ public class Walker implements Serializable {
 	}
 
 	/**
-	 * For serialization
+	 * For serialization - to be replaced?
 	 *
 	 * @param rng  The random number generator to use.
 	 * @param seed The initial seed number (unused but important for recording).
@@ -164,10 +164,6 @@ public class Walker implements Serializable {
 	 */
 	public void writeToWriter(BufferedWriter out)
 					throws IOException {
-		out.write("BEGIN WALKER");
-		out.newLine();
-		// TODO: Write zoo tracked values out as there shouldn't be any others.
-		out.write("END WALKER");
-		out.newLine();
+		zoo.writeToWriter(out);
 	}
 }

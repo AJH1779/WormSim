@@ -26,7 +26,6 @@ public final class AnimalStage {
 	 * @param name   The name of the stage
 	 * @param strain The strain of the animal
 	 */
-	@SuppressWarnings({"LeakingThisInConstructor", "unchecked"})
 	public AnimalStage(String name, AnimalStrain strain) {
 		this.food_rate = new TrackedDouble(1.0);
 		this.name = name;
@@ -36,8 +35,6 @@ public final class AnimalStage {
 		for (int i = 0; i < this.pheromone_rates.length; i++) {
 			this.pheromone_rates[i] = new TrackedDouble(1.0);
 		}
-
-		this.strain.setStage(this);
 	}
 
 	/**
@@ -60,7 +57,7 @@ public final class AnimalStage {
 			this.pheromone_rates[i] = stage.pheromone_rates[i].copy();
 		}
 
-		this.strain.setStage(this);
+		this.strain.addStage(this);
 	}
 	private double dev_time = 1.0;
 	private AnimalDevelopment development;
@@ -79,30 +76,12 @@ public final class AnimalStage {
 	}
 
 	/**
-	 * Sets the animal developmental decision for this stage.
-	 *
-	 * @param dev The development decision.
-	 */
-	public void setAnimalDevelopment(AnimalDevelopment dev) {
-		this.development = dev;
-	}
-
-	/**
 	 * Returns the time required to develop to the next development stage.
 	 *
 	 * @return The development time
 	 */
 	public double getDevelopmentTime() {
 		return dev_time;
-	}
-
-	/**
-	 * Sets the time required to develop to the next development stage.
-	 *
-	 * @param dev_time The new development time
-	 */
-	public void setDevelopmentTime(double dev_time) {
-		this.dev_time = dev_time;
 	}
 
 	/**
@@ -170,5 +149,23 @@ public final class AnimalStage {
 	public void score(ScoringInterface iface, int count) {
 		iface.addScore(this.getFullName(), count);
 		// TODO: Allow for a ScoringFunction instead?
+	}
+
+	/**
+	 * Sets the animal developmental decision for this stage.
+	 *
+	 * @param dev The development decision.
+	 */
+	void setAnimalDevelopment(AnimalDevelopment dev) {
+		this.development = dev;
+	}
+
+	/**
+	 * Sets the time required to develop to the next development stage.
+	 *
+	 * @param dev_time The new development time
+	 */
+	void setDevelopmentTime(double dev_time) {
+		this.dev_time = dev_time;
 	}
 }

@@ -7,6 +7,9 @@ package com.wormsim.data;
 
 import com.wormsim.animals.DevelopmentFunction;
 import com.wormsim.animals.ScoringFunction;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -47,6 +50,26 @@ public interface TrackedValue extends Serializable {
 	public void evolve(RandomGenerator rng);
 
 	/**
+	 * Writes the current value of this tracked value to the given writer.
+	 *
+	 * @param out The output writer
+	 *
+	 * @throws IOException If any exception is thrown by the writer.
+	 */
+	public void writeToWriter(BufferedWriter out)
+					throws IOException;
+
+	/**
+	 * Writes the current value of this tracked value to the given stream.
+	 *
+	 * @param out The output stream.
+	 *
+	 * @throws IOException If any exception is thrown by the stream.
+	 */
+	public void writeToStream(ObjectOutputStream out)
+					throws IOException;
+
+	/**
 	 * A double value that may be tracked and recorded or optimised.
 	 */
 	public static class TrackedDouble implements TrackedValue {
@@ -64,7 +87,8 @@ public interface TrackedValue extends Serializable {
 		 *
 		 * @param val
 		 */
-		@SuppressWarnings({"LeakingThisInConstructor", "CollectionWithoutInitialCapacity"})
+		@SuppressWarnings({"LeakingThisInConstructor",
+											 "CollectionWithoutInitialCapacity"})
 		public TrackedDouble(double val) {
 			this.history = new ArrayList<>();
 			this.prev_value = this.value = val;
@@ -201,15 +225,30 @@ public interface TrackedValue extends Serializable {
 		public boolean stopAffectingVariance() {
 			return this.all_related.remove(this);
 		}
+
+		@Override
+		public void writeToStream(ObjectOutputStream p_out)
+						throws IOException {
+			p_out.writeDouble(value);
+		}
+
+		@Override
+		public void writeToWriter(BufferedWriter p_out)
+						throws IOException {
+			p_out.write(Double.toString(value));
+			p_out.write(",");
+		}
 	}
 
-	public static interface TrackedDecisionFunction extends TrackedValue, DevelopmentFunction {
+	public static interface TrackedDecisionFunction extends TrackedValue,
+					DevelopmentFunction {
 
 		@Override
 		public TrackedDecisionFunction copy();
 	}
 
-	public static interface TrackedScoringFunction extends TrackedValue, ScoringFunction {
+	public static interface TrackedScoringFunction extends TrackedValue,
+					ScoringFunction {
 
 		@Override
 		public TrackedScoringFunction copy();

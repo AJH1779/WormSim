@@ -71,7 +71,7 @@ public class SimulationThread implements Runnable {
 		while (sim.isRunning()) {
 			try {
 				// WARNING: Arbitrary timeout, should this be adjusted?
-				Walker walker = walkers.poll(5, TimeUnit.SECONDS);
+				Walker walker = walkers.poll(1000, TimeUnit.MILLISECONDS);
 				if (walker != null) {
 					walker.giveThread(this);
 					walker.evolve();

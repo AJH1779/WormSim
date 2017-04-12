@@ -6,15 +6,13 @@
 package com.wormsim.data;
 
 import com.wormsim.animals.AnimalZoo;
-import com.wormsim.utils.Context;
-import com.wormsim.utils.Context.BasicContext;
-import com.wormsim.utils.StringFormula;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.function.IntPredicate;
@@ -29,10 +27,11 @@ import java.util.logging.Logger;
  * @author ah810
  * @version 0.0.1
  */
-public class SimulationOptions {
+public class SimulationOptions implements Serializable {
 
 	private static final Logger LOG = Logger.getLogger(SimulationOptions.class
 					.getName());
+	private static final long serialVersionUID = 1L;
 	/**
 	 * A string denoting the keyword for the animal definitions block.
 	 */
@@ -93,6 +92,10 @@ public class SimulationOptions {
 	 */
 	public static final String THREAD_NO = "thread_no";
 	/**
+	 * A string denoting the keyword for the timing out of the program.
+	 */
+	public static final String TIMEOUT = "timeout";
+	/**
 	 * A string denoting the keyword for the number of walkers to use.
 	 */
 	public static final String WALKER_NO = "walker_no";
@@ -119,9 +122,9 @@ public class SimulationOptions {
 
 		HashMap<String, Object> data = new HashMap<>(64);
 
-		int line_no = 1;
+		int[] line_no = {1};
 		try (BufferedReader in = new BufferedReader(new FileReader(input))) {
-			for (String line = in.readLine(); line != null; line = in.readLine(), line_no++) {
+			for (String line = in.readLine(); line != null; line = in.readLine(), line_no[0]++) {
 				if (line.matches("\\s*#.*")) {
 					continue;
 				}
@@ -148,19 +151,7 @@ public class SimulationOptions {
 					}
 					case INITIAL_CONDITIONS: {
 						// In this case there is more to it
-						line_no++;
-						HashMap<String, String> data2 = new HashMap<>(16);
-						for (String line2 = in.readLine(); line != null; line = in
-										.readLine(), line_no++) {
-							if (line2.contains("~")) {
-								int index2 = line2.indexOf('~');
-								String key2 = line2.substring(0, index2 - 1).trim().toLowerCase(
-												Locale.getDefault());
-								String entry2 = line2.substring(index2).trim();
-								data2.put(key2, entry2);
-							}
-						}
-						data.put(key, new SimulationConditions(data2));
+						data.put(key, new SimulationConditions(in, line_no));
 						break;
 					}
 					case ANIMAL_ZOO: {
@@ -168,64 +159,7 @@ public class SimulationOptions {
 							throw new IOException(
 											"Animal Zoo line does not end with open curly braces!");
 						}
-						line_no++;
-						AnimalZoo.Builder zoo = new AnimalZoo.Builder();
-						BasicContext context = Context.GLOBAL_CONTEXT.clone();
-						for (line = in.readLine(); line != null; line = in
-										.readLine().trim(), line_no++) {
-							// Ignore comment lines.
-							if (line.startsWith("#")) {
-								continue;
-							}
-							// Filter based on pre-defined keywords.
-							if (line.startsWith("strain ")) {
-								if (!line.endsWith("{")) {
-									throw new IOException(
-													"Unable to read line, does not end in {: " + line);
-								}
-								String strain = line.substring(7, line.length() - 2)
-												.trim();
-								zoo.addAnimalStrain(strain);
-								for (line = in.readLine(); line != null; line = in
-												.readLine().trim(), line_no++) {
-									if (line.startsWith("#")) {
-										continue;
-									}
-									if (line.startsWith("stage ")) {
-										zoo.addAnimalStage(strain, line.substring(6).trim());
-									} else if (line.startsWith("dev ")) {
-										zoo.addAnimalTransition(line.substring(4).trim());
-									} else if (!line.isEmpty()) {
-										throw new IOException("Could not interpret the line: "
-														+ line);
-									}
-									if (line.endsWith("}")) {
-										break;
-									}
-								}
-							} else if (line.startsWith("}")) {
-								break;
-							} else if (line.contains("=")) {
-								// Define a constant
-								int equals = line.indexOf('=');
-								context.addVariable(line.substring(0, equals - 1), StringFormula
-												.evaluate(line.substring(equals), context));
-							} else if (line.contains("~")) {
-								throw new IOException("Distributions are not yet implemented: "
-												+ line);
-							} else if (!line.isEmpty()) {
-								throw new IOException("Could not interpret the line: "
-												+ line);
-							}
-							if (line == null) {
-								throw new IOException(
-												"Reached end of file prematurely within strain "
-												+ "block!");
-							}
-							if (line.endsWith("}")) {
-								break;
-							}
-						}
+						AnimalZoo.Builder zoo = new AnimalZoo.Builder(in, line_no);
 						data.put(key, zoo);
 						break;
 					}
@@ -234,7 +168,7 @@ public class SimulationOptions {
 		} catch (IOException ex) {
 			throw new IOException(
 							"Unable to read from the specified \"input.txt\"! Error when attempting to read line "
-							+ line_no + ".", ex);
+							+ line_no[0] + ".", ex);
 		}
 
 		return data;
@@ -361,6 +295,7 @@ public class SimulationOptions {
 		this.record_freq_no = (Integer) data.getOrDefault(RECORD_FREQ_NO, 1);
 		this.zoo = ((AnimalZoo) data.get(ANIMAL_ZOO)).create(
 						this.pheromone_no);
+		// */
 	}
 	private final int assay_iteration_no;
 	private final int burn_in_no;
@@ -468,6 +403,12 @@ public class SimulationOptions {
 		return seed;
 	}
 
+	/**
+	 * Returns whether the simulation should record detailed information in the
+	 * data.dat file.
+	 *
+	 * @return
+	 */
 	public boolean getRecordDetailedData() {
 		return this.detailed_data;
 	}

@@ -5,12 +5,14 @@
  */
 package com.wormsim.data;
 
-import com.wormsim.animals.AnimalZoo;
 import com.wormsim.animals.AnimalGroup;
+import com.wormsim.animals.AnimalZoo;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.logging.Logger;
 import org.apache.commons.math3.distribution.ConstantRealDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -30,6 +32,11 @@ public class SimulationConditions {
 					.getName());
 
 	public static String groupDistributionToString(GroupDistribution dist) {
+		throw new UnsupportedOperationException("NOT YET IMPLEMENTED");
+	}
+
+	public static SimulationConditions read(String str)
+					throws IOException {
 		throw new UnsupportedOperationException("NOT YET IMPLEMENTED");
 	}
 
@@ -110,43 +117,51 @@ public class SimulationConditions {
 		}
 
 	}
-//
-//	/**
-//	 * Creates a new simulation object using the specified distributions.
-//	 *
-//	 * @param food_dist       The food distribution to use.
-//	 * @param pheromone_dists The pheromone distributions to use.
-//	 * @param group_dist      The group distribution to use.
-//	 *
-//	 * @deprecated Although not really as will be made useful later.
-//	 */
-//	public SimulationConditions(RealDistribution food_dist,
-//															RealDistribution[] pheromone_dists,
-//															GroupDistribution group_dist) {
-//		this.food_dist = food_dist;
-//		this.pheromone_dists = new RealDistribution[pheromone_dists.length];
-//		this.group_dist = group_dist;
-//		System.arraycopy(this.pheromone_dists, 0, pheromone_dists, 0,
-//						pheromone_dists.length);
-//	}
-//
-//	/**
-//	 * Creates a new simulation object based on the names of distributions
-//	 * provided.
-//	 *
-//	 * @param food_dist       The food distribution as a string.
-//	 * @param pheromone_dists The pheromone distributions as strings.
-//	 * @param group_dist      The group distribution as a string.
-//	 */
-//	public SimulationConditions(String food_dist, String[] pheromone_dists,
-//															String group_dist) {
-//		this.food_dist = stringToRealDistribution(food_dist);
-//		this.pheromone_dists = new RealDistribution[pheromone_dists.length];
-//		for (int i = 0; i < pheromone_dists.length; i++) {
-//			this.pheromone_dists[i] = stringToRealDistribution(pheromone_dists[i]);
-//		}
-//		this.group_dist = stringToGroupDistribution(group_dist);
-//	}
+
+	/**
+	 * Constructor based on the simulation options.
+	 *
+	 * TODO: Make this much more reasonable.
+	 *
+	 * @param in
+	 * @param line_no
+	 *
+	 * @throws IOException
+	 */
+	public SimulationConditions(BufferedReader in, int line_no[])
+					throws IOException {
+		line_no[0]++;
+		HashMap<String, String> data = new HashMap<>(16);
+		for (String line = in.readLine(); line != null; line = in
+						.readLine(), line_no[0]++) {
+			if (line.contains("~")) {
+				int index2 = line.indexOf('~');
+				String key2 = line.substring(0, index2 - 1).trim().toLowerCase(
+								Locale.getDefault());
+				String entry2 = line.substring(index2).trim();
+				data.put(key2, entry2);
+			}
+		}
+		this.food_dist = stringToRealDistribution(data.get("food"));
+		int max = data.keySet().stream().filter((str) -> str
+						.matches("pheromone.*"))
+						.reduce(Integer.MIN_VALUE, (ai, b) -> {
+							int bi = Integer.valueOf(b.substring(b.indexOf('['), b
+											.indexOf(']') - 1).trim());
+							return Math.max(ai, bi);
+						}, (ai, bi) -> Math.max(ai, bi));
+		this.pheromone_dists = new RealDistribution[max];
+		data.entrySet().stream().filter((e) -> e.getKey().matches("pheromone.*"))
+						.forEach((e) -> {
+							String key = e.getKey();
+							String value = e.getValue().trim();
+							int ref = Integer.valueOf(key.substring(key.indexOf('['), key
+											.indexOf(']') - 1).trim());
+							this.pheromone_dists[ref] = stringToRealDistribution(value);
+						});
+
+		this.group_dist = stringToGroupDistribution(data.get("groups"));
+	}
 
 	/**
 	 * Creates a new simulation object based on the text from a block in
@@ -156,7 +171,8 @@ public class SimulationConditions {
 	 */
 	public SimulationConditions(HashMap<String, String> data) {
 		this.food_dist = stringToRealDistribution(data.get("food"));
-		int max = data.keySet().stream().filter((str) -> str.matches("pheromone.*"))
+		int max = data.keySet().stream().filter((str) -> str
+						.matches("pheromone.*"))
 						.reduce(Integer.MIN_VALUE, (ai, b) -> {
 							int bi = Integer.valueOf(b.substring(b.indexOf('['), b
 											.indexOf(']') - 1).trim());

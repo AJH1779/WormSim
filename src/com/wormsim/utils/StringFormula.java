@@ -44,7 +44,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			int opindex = match.indexOf("+");
+			int opindex = match.indexOf('+');
 			Formula left = makeFormula(match.substring(0, opindex).trim(), in_funcs);
 			Formula right = makeFormula(match.substring(opindex + 1).trim(), in_funcs);
 			in_funcs.put(key, new Add(left, right));
@@ -62,7 +62,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			int opindex = match.indexOf("&");
+			int opindex = match.indexOf('&');
 			Formula left = makeFormula(match.substring(0, opindex).trim(), in_funcs);
 			Formula right = makeFormula(match.substring(opindex + 1).trim(), in_funcs);
 			in_funcs.put(key, new And(left, right));
@@ -80,7 +80,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			System.out.println("Method " + key + " = " + match);
+			// System.out.println("Method " + key + " = " + match);
 			in_funcs.put(key, makeFormula(match.substring(1, match.length() - 1),
 							in_funcs));
 			formula[0] = Pattern.compile(match, Pattern.LITERAL).matcher(formula[0])
@@ -97,7 +97,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			int opindex = match.indexOf("/");
+			int opindex = match.indexOf('/');
 			Formula left = makeFormula(match.substring(0, opindex).trim(), in_funcs);
 			Formula right = makeFormula(match.substring(opindex + 1).trim(), in_funcs);
 			in_funcs.put(key, new Divide(left, right));
@@ -115,8 +115,8 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			System.out.println("Method " + key + " = " + match);
-			int first_bracket = match.indexOf("(");
+			// System.out.println("Method " + key + " = " + match);
+			int first_bracket = match.indexOf('(');
 			String name = match.substring(0, first_bracket).trim();
 			String[] args = match.substring(first_bracket + 1, match.length() - 1)
 							.split("\\s*(,|;)\\s*");
@@ -144,7 +144,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			int opindex = match.indexOf("*");
+			int opindex = match.indexOf('*');
 			Formula left = makeFormula(match.substring(0, opindex).trim(), in_funcs);
 			Formula right = makeFormula(match.substring(opindex + 1).trim(), in_funcs);
 			in_funcs.put(key, new Multiply(left, right));
@@ -162,7 +162,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			int opindex = match.indexOf("|");
+			int opindex = match.indexOf('|');
 			Formula left = makeFormula(match.substring(0, opindex).trim(), in_funcs);
 			Formula right = makeFormula(match.substring(opindex + 1).trim(), in_funcs);
 			in_funcs.put(key, new Or(left, right));
@@ -180,7 +180,7 @@ public class StringFormula {
 			flag = true;
 			String match = m.group();
 			String key = "#" + in_funcs.size();
-			int opindex = match.indexOf("-");
+			int opindex = match.indexOf('-');
 			Formula left = makeFormula(match.substring(0, opindex).trim(), in_funcs);
 			Formula right = makeFormula(match.substring(opindex + 1).trim(), in_funcs);
 			in_funcs.put(key, new Subtract(left, right));
@@ -194,6 +194,7 @@ public class StringFormula {
 		return makeFormula(in_formula, null).evaluate(context);
 	}
 
+	@SuppressWarnings("UseOfSystemOutOrSystemErr")
 	public static void main(String[] args) {
 		StringFormula test = new StringFormula("pow(pi(),(2+3)/4.5)");
 		BasicContext con = new BasicContext();
@@ -239,6 +240,13 @@ public class StringFormula {
 		return root.evaluate(con);
 	}
 
+	/*
+	public Formula compile() {
+		CompiledFormula form = new CompiledFormula(str);
+		root.compile(form);
+		return form.compile();
+	}
+	 */
 	@Override
 	public String toString() {
 		return str;
@@ -246,6 +254,8 @@ public class StringFormula {
 
 	public static interface Formula {
 		public abstract double evaluate(Context con);
+
+		// public abstract void compile(CompiledFormula form);
 	}
 
 	public static class Add extends LRFormula {
@@ -306,8 +316,8 @@ public class StringFormula {
 			this.name = name;
 			this.args = args;
 		}
-		private final String name;
 		private final Formula[] args;
+		private final String name;
 
 		@Override
 		public double evaluate(Context con) {

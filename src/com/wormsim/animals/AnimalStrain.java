@@ -89,7 +89,7 @@ public class AnimalStrain {
 	 * @throws IllegalArgumentException Thrown if the provided stage does not
 	 *                                  belong to this stage.
 	 */
-	AnimalStage setStage(AnimalStage stage)
+	AnimalStage addStage(AnimalStage stage)
 					throws IllegalArgumentException {
 		if (stage.getStrain() != this) {
 			throw new IllegalArgumentException(

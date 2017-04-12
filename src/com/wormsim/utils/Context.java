@@ -17,6 +17,11 @@ public abstract class Context implements Cloneable {
 	public static final BasicContext GLOBAL_CONTEXT = new BasicContext();
 
 	static {
+		GLOBAL_CONTEXT.addVariable("e", FastMath.E);
+		GLOBAL_CONTEXT.addVariable("pi", FastMath.PI);
+		GLOBAL_CONTEXT.addVariable("true", 1.0);
+		GLOBAL_CONTEXT.addVariable("false", 0.0);
+
 		GLOBAL_CONTEXT.addMethod("ln", (p) -> FastMath.log(p[0]));
 		GLOBAL_CONTEXT.addMethod("log", (p) -> FastMath.log(p[0], p[1]));
 		GLOBAL_CONTEXT.addMethod("log10", (p) -> FastMath.log10(p[0]));

@@ -5,6 +5,9 @@
  */
 package com.wormsim.utils;
 
+import java.io.IOException;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import java.util.logging.Logger;
 import static org.apache.commons.math3.util.FastMath.exp;
 import static org.apache.commons.math3.util.FastMath.log;
@@ -17,28 +20,86 @@ public class Utils {
 
 	private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
+	/**
+	 *
+	 * @param val
+	 * @param min
+	 * @param max
+	 *
+	 * @return
+	 */
+	public static int bound(int val, int min, int max) {
+		return min(max(val, min), min);
+	}
+
+	public static float bound(float val, float min, float max) {
+		return min(max(val, min), min);
+	}
+
+	public static long bound(long val, long min, long max) {
+		return min(max(val, min), min);
+	}
+
+	public static double bound(double val, double min, double max) {
+		return min(max(val, min), min);
+	}
 
 	/**
 	 * Returns the logistic transformation of the input value.
+	 *
 	 * @param val
-	 * @return 
+	 *
+	 * @return
 	 */
 	public static double logistic(double val) {
 		return 1.0 / (1.0 + exp(-val));
 	}
-	
+
 	/**
 	 * Returns the logit transformation of the input value.
+	 *
 	 * @param val
-	 * @return 
+	 *
+	 * @return
 	 */
 	public static double logit(double val) {
 		return log(val / (1.0 - val));
 	}
-	
+
+	public static Boolean readBoolean(String str)
+					throws IOException {
+		if (str.matches("/true/i")) {
+			return Boolean.TRUE;
+		} else if (str.matches("/false/i")) {
+			return Boolean.FALSE;
+		} else {
+			throw new IOException("Invalid Boolean Representation: " + str);
+		}
+	}
+
+	public static Integer readInteger(String str)
+					throws IOException {
+		try {
+			return Integer.valueOf(str);
+		} catch (NumberFormatException ex) {
+			throw new IOException(ex);
+		}
+	}
+
+	public static Integer readLong(String str)
+					throws IOException {
+		try {
+			return Integer.valueOf(str);
+		} catch (NumberFormatException ex) {
+			throw new IOException(ex);
+		}
+	}
+
 	/**
 	 * Converts the time in milliseconds to a time string.
+	 *
 	 * @param dmillis The time in milliseconds.
+	 *
 	 * @return The time as a string.
 	 */
 	public static String toTime(long dmillis) {
@@ -50,7 +111,7 @@ public class Utils {
 						(int) (dmillis / (1000) % 60),
 						(int) (dmillis % 1000));
 	}
-	
+
 	private Utils() {
 	}
 }

@@ -11,10 +11,13 @@ import static com.wormsim.Main.REFERENCE;
 import static com.wormsim.Main.VERSION;
 import com.wormsim.data.SimulationConditions;
 import com.wormsim.data.SimulationOptions;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -36,7 +39,11 @@ public class Simulation implements Runnable {
 
 	/**
 	 * The name of the file which stores all raw data generated over the course of
-	 * the simulation.
+	 * the simulation. This will be a binary format file.
+	 *
+	 * TODO: Switch from human readable to binary.
+	 *
+	 * TODO: Make this file optional.
 	 */
 	public static final String DATA_DAT = "data.dat";
 	/**
@@ -56,8 +63,8 @@ public class Simulation implements Runnable {
 		this.walkers = new ArrayList<>((options.getWalkerNumber() * 11) / 10);
 		this.rng = new Random(ops.getRandomSeed());
 
-		this.out_file = new File(ops.getDirectory(), OUT_TXT);
-		this.data_file = new File(ops.getDirectory(), DATA_DAT);
+		this.out_file = new File(ops.getDirectory(), OUT_TXT); // Always on output.
+		this.data_file = new File(ops.getDirectory(), DATA_DAT); // Detailed data file
 		if (this.data_file.exists() && ops.getRecordDetailedData()) {
 			LOG.log(Level.SEVERE,
 							"Warning: The data.dat file already exists in the target directory. Delete or move it to run the program. (Located at {0})",
@@ -74,7 +81,8 @@ public class Simulation implements Runnable {
 	private final File data_file;
 	private volatile boolean isrunning;
 	private int iteration = 0;
-	private final LinkedBlockingDeque<Walker> iteration_walkers = new LinkedBlockingDeque<>();
+	private final LinkedBlockingDeque<Walker> iteration_walkers
+					= new LinkedBlockingDeque<>();
 	private final SimulationOptions options;
 	private final File out_file;
 	private final Random rng;
@@ -85,7 +93,22 @@ public class Simulation implements Runnable {
 	private void checkpoint() {
 		File checkpoint_file = new File(options.getDirectory(), "checkpoint"
 						+ ((iteration - options.getBurnInNumber()) / options
-						.getCheckpointNumber()) + ".txt");
+						.getCheckpointNumber()) + ".dat");
+
+		// Output to the other file
+		try (ObjectOutputStream out = new ObjectOutputStream(
+						new BufferedOutputStream(new FileOutputStream(checkpoint_file)))) {
+			// TODO: Ensure that there is a header which contains the out.txt as a
+			// binary file.
+			out.writeObject(options);
+			for (Walker w : walkers) {
+				out.writeObject(w);
+			}
+		} catch (IOException ex) {
+			// TODO: Proper Error checking and control.
+			LOG.log(Level.SEVERE, null, ex);
+			isrunning = false;
+		}
 
 		// Write the output here for the different files that are important
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(out_file, true))) {
@@ -94,16 +117,6 @@ public class Simulation implements Runnable {
 			// TODO: Some brief details to look at.
 			out.newLine();
 			out.flush();
-		} catch (IOException ex) {
-			// TODO: Proper Error checking and control.
-			Logger.getLogger(Simulation.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		// Output to the other file
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(checkpoint_file))) {
-			for (Walker w : walkers) {
-				w.writeToWriter(out);
-			}
-			out.newLine();
 		} catch (IOException ex) {
 			// TODO: Proper Error checking and control.
 			Logger.getLogger(Simulation.class.getName()).log(Level.SEVERE, null, ex);
@@ -135,12 +148,25 @@ public class Simulation implements Runnable {
 	 * @return If the iteration is a recording iteration
 	 */
 	private boolean reachedRecord() {
-		return iteration > options.getBurnInNumber() && iteration % options
-						.getRecordingFrequencyNumber() == 0;
+		return iteration > options.getBurnInNumber() && (iteration - options
+						.getBurnInNumber()) % options.getRecordingFrequencyNumber() == 0;
 	}
 
-	private void record() {
-
+	private void record()
+					throws IOException {
+		// Currently records to a simple file for the sake of getting data.
+		// TODO: Record here if the otpions.getRecordDetailedData() is set to true.
+		try (BufferedWriter out
+						= new BufferedWriter(new FileWriter(data_file, true))) {
+			// Records the current state of the tracked values.
+			for (Walker w : walkers) {
+				w.writeToWriter(out);
+			}
+			out.newLine();
+		} catch (IOException ex) {
+			LOG.log(Level.SEVERE, null, ex);
+			isrunning = false;
+		}
 	}
 
 	/**
@@ -243,7 +269,8 @@ public class Simulation implements Runnable {
 						record();
 					}
 					if (reachedCheckpoint()) {
-						checkpoint();
+						// TODO: Temporarily does nothing.
+						// checkpoint();
 					}
 					if (reachedEnd()) {
 						isrunning = false;

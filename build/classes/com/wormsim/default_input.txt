@@ -42,13 +42,6 @@ forced_run = false
 # false if the use of a checkpoint is desired instead.
 new_run = true
 
-# Sets the number of pheromone channels to be initialised.
-pheromone_no = 1
-# Sets the initial conditions of the system by distributions.
-initial_conditions = {
-	food ~ normal(100000, 10000)
-	pheromone[1] = 0
-}
 # The animal zoo to use. Note that parameter order matters here.
 animal_zoo = {
 	# Define constants here.
@@ -138,4 +131,13 @@ animal_zoo = {
 		dev linear (L2d, Dauer) { 1 }
 		dev scoring (Dauer) { exp(-t / var0) }
 	}
+}
+
+# Sets the number of pheromone channels to be initialised.
+pheromone_no = 1
+# Sets the initial conditions of the system by distributions.
+initial_conditions = {
+	food ~ normal(100000, 10000)
+	pheromone[1] ~ 0
+	basic L1 ~ 1
 }

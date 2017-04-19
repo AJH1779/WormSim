@@ -37,7 +37,6 @@ public class AnimalZoo implements TrackedValue {
 	/**
 	 * Creates a new empty zoo. It must be done this way.
 	 */
-	@SuppressWarnings("CollectionWithoutInitialCapacity")
 	public AnimalZoo() {
 		this(0);
 	}
@@ -72,11 +71,14 @@ public class AnimalZoo implements TrackedValue {
 	 * @return True if added, false otherwise.
 	 */
 	public boolean addAnimalDevelopment(AnimalDevelopment dev) {
-		boolean flag = dev.getInvolvedStages().allMatch((s) -> this.stages
-						.containsValue(s)) && this.developments.putIfAbsent(
+		boolean flag = dev.getInvolvedStages().allMatch((s) -> s == null
+						|| this.stages.containsValue(s)) && this.developments.putIfAbsent(
 						dev.getPrevStage(), dev) == null;
 		if (flag) {
 			dev.getPrevStage().setAnimalDevelopment(dev);
+			dev.getTrackedValues().forEach((v) -> tracked_values.add(v));
+		} else {
+			throw new AssertionError("Temporary Error, needs better handling.");
 		}
 		return flag;
 	}
@@ -132,7 +134,7 @@ public class AnimalZoo implements TrackedValue {
 	public AnimalZoo.Immutable create(int p_pheromone_no) {
 		AnimalZoo.Immutable zoo = new AnimalZoo.Immutable();
 		strains.forEach((k, v) -> {
-			zoo.strains.put(k, new AnimalStrain(v));
+			zoo.strains.put(k, new AnimalStrain(v, p_pheromone_no));
 		});
 		stages.forEach((k, v) -> {
 			zoo.stages.put(k,
@@ -142,8 +144,9 @@ public class AnimalZoo implements TrackedValue {
 		developments.forEach((k, v) -> {
 			AnimalDevelopment dev = v.changeZoo(zoo);
 			zoo.developments.put(dev.getPrevStage(), dev);
+			dev.getPrevStage().setAnimalDevelopment(dev);
+			dev.getTrackedValues().forEach((a) -> zoo.tracked_values.add(a));
 		});
-		// TrackedValues need to be added.
 		return zoo;
 	}
 
@@ -221,6 +224,13 @@ public class AnimalZoo implements TrackedValue {
 
 		}
 
+		/**
+		 *
+		 * @param in
+		 * @param line_no
+		 *
+		 * @throws IOException
+		 */
 		public Builder(BufferedReader in, int[] line_no)
 						throws IOException {
 			Context.BasicContext context = Context.GLOBAL_CONTEXT.clone();
@@ -397,7 +407,7 @@ public class AnimalZoo implements TrackedValue {
 		@Override
 		public boolean addAnimalDevelopment(AnimalDevelopment dev) {
 			throw new UnsupportedOperationException(
-							"Cannot alter the developments of an immutable animal zoo.");
+							"Cannot alter an immutable animal zoo.");
 		}
 
 		/**
@@ -407,8 +417,8 @@ public class AnimalZoo implements TrackedValue {
 		 */
 		@Override
 		public boolean addAnimalStage(AnimalStage p_stage) {
-			return this.strains.containsValue(p_stage.getStrain()) && this.stages
-							.putIfAbsent(p_stage.getFullName(), p_stage) == null;
+			throw new UnsupportedOperationException(
+							"Cannot alter an immutable animal zoo.");
 		}
 
 		/**
@@ -418,7 +428,8 @@ public class AnimalZoo implements TrackedValue {
 		 */
 		@Override
 		public boolean addAnimalStrain(AnimalStrain p_strain) {
-			return this.strains.putIfAbsent(p_strain.getName(), p_strain) == null;
+			throw new UnsupportedOperationException(
+							"Cannot alter an immutable animal zoo.");
 		}
 	}
 }

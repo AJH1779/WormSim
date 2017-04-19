@@ -5,7 +5,9 @@
  */
 package com.wormsim.data;
 
+import com.wormsim.Temporary;
 import com.wormsim.animals.AnimalZoo;
+import com.wormsim.utils.Utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -58,7 +60,7 @@ public class SimulationOptions implements Serializable {
 	/**
 	 * A string denoting the keyword for the force run flag.
 	 */
-	public static final String FORCED_RUN = "force_run";
+	public static final String FORCED_RUN = "forced_run";
 	/**
 	 * A string denoting the keyword for the initial conditions block.
 	 */
@@ -136,11 +138,16 @@ public class SimulationOptions implements Serializable {
 								.getDefault());
 				String entry = line.substring(index + 1).trim();
 				switch (key) {
+					case FORCED_RUN: {
+						data.put(key, Utils.readBoolean(entry));
+						break;
+					}
 					case THREAD_NO:
 					case WALKER_NO:
 					case BURN_IN_NO:
 					case RECORD_NO:
 					case PHEROMONE_NO:
+					case ASSAY_ITERATION_NO:
 					case CHECKPOINT_NO: {
 						data.put(key, readInteger(key, entry, (i) -> i > 0));
 						break;
@@ -293,8 +300,8 @@ public class SimulationOptions implements Serializable {
 						? Long.MAX_VALUE
 						: System.currentTimeMillis() + cmds.getTimeout();
 		this.record_freq_no = (Integer) data.getOrDefault(RECORD_FREQ_NO, 1);
-		this.zoo = ((AnimalZoo) data.get(ANIMAL_ZOO)).create(
-						this.pheromone_no);
+		this.zoo = ((AnimalZoo) data.getOrDefault(ANIMAL_ZOO,
+						Temporary.CODED_ANIMAL_ZOO)).create(this.pheromone_no);
 		// */
 	}
 	private final int assay_iteration_no;

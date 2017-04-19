@@ -14,6 +14,7 @@ import com.wormsim.simulation.SimulationThread;
  * @author ah810
  * @version 0.0.1
  */
+@FunctionalInterface
 public interface ScoringFunction {
 	/**
 	 * Returns a scoring function which is represented by the specified string.

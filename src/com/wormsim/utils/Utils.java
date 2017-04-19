@@ -68,13 +68,17 @@ public class Utils {
 
 	public static Boolean readBoolean(String str)
 					throws IOException {
-		if (str.matches("/true/i")) {
+		if (str.matches("true|True|T|t|yes|y|TRUE")) {
 			return Boolean.TRUE;
-		} else if (str.matches("/false/i")) {
+		} else if (str.matches("false|False|F|f|no|n|FALSE")) {
 			return Boolean.FALSE;
 		} else {
 			throw new IOException("Invalid Boolean Representation: " + str);
 		}
+	}
+
+	public static void main(String[] arg) {
+		System.out.println(logistic(1.0));
 	}
 
 	public static Integer readInteger(String str)

@@ -14,12 +14,12 @@
 # thread_no = MAX_THREADS
 
 # Specifies the number of walkers to use.
-walker_no = 1012
+walker_no = 4
 
 # The number of iterations to perform before recording data.
-burn_in_iteration_no = 500
+burn_in_iteration_no = 1
 # The number of iterations to perform recording data (following the burn-in).
-recording_iteration_no = 1000
+recording_iteration_no = 200
 # The number of assay iterations to use for estimating the survival function.
 # TODO: Improve this.
 assay_iteration_no = 100
@@ -37,7 +37,7 @@ detailed_data = true
 # Will force the program to run even if there are existing output files.
 # All output files will be deleted prior to running the simulation and will be
 # irretrievable.
-forced_run = false
+forced_run = true
 # Will require that the program is running from a fresh starting state. Set to
 # false if the use of a checkpoint is desired instead.
 new_run = true
@@ -46,228 +46,7 @@ new_run = true
 pheromone_no = 1
 # Sets the initial conditions of the system by distributions.
 initial_conditions = {
-	food ~ normal(100000, 10000)
-	pheromone[1] = 0
+	food ~ normal(10000, 1000)
+	pheromone[1] ~ 0
+	TestStrain L1 ~ 1
 }
-# The animal zoo to use. Note that parameter order matters here.
-animal_zoo = {
-	# Define constants here.
-	# ln(#) is the natural logarithm function and is a pre-defined function.
-	score_lambda = ln(2)/(10)
-
-	# A simple model.
-	strain basic {
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage Dauer 0
-
-		dev branching (L1, L2, L2d) ~ logit(1 + food + pheromone[#] + food . food +
-															food . pheromone[#] + pheromone[#] . pheromone[#])
-		dev linear (L2d, Dauer) = 1
-		dev laying (L2, null, L3) = 100
-		# time is a pre-defined variable that calls upon the current expired time.
-		dev scoring (Dauer) = exp(-time * score_lambda)
-	}
-
-	# A simple N2 mimic.
-	strain simple_N2 {
-		stage Egg 1
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage L3 1
-		stage L4 1
-		stage Young Adult 1
-		stage Adult 1
-		stage Dauer 0
-
-		dev linear (Egg, L1) { 1 }
-		dev branching (L1, L2, L2d) { 0.5 }
-		dev linear (L2, L3) { 1 }
-		dev linear (L3, L4) { 1 }
-		dev linear (L4, Young Adult) { 1 }
-		dev linear (Young Adult, Adult) { 1 }
-		dev laying (Adult, null, Egg, 250) { 1 }
-		dev linear (L2d, Dauer) { 1 }
-		dev scoring (Dauer) { exp(-t * score_lambda) }
-	}
-	# The same as the simple but this extends the adult to producing progeny in
-	# pairs 100 times rather than all at once.
-	strain average_N2 {
-		stage Egg 1
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage L3 1
-		stage L4 1
-		stage Young Adult 1
-		stage Adult[100] 0.1
-		stage Dauer 0
-
-		dev linear (Egg, L1) { 1 }
-		dev branching (L1, L2, L2d) { 0.5 }
-		dev linear (L2, L3) { 1 }
-		dev linear (L3, L4) { 1 }
-		dev linear (L4, Young Adult) { 1 }
-		dev linear (Young Adult, Adult) { 1 }
-		dev laying (Adult[i], Adult[i+1], Egg) { 2 }
-		dev laying (Adult[100], null, Egg) { 2 }
-		dev linear (L2d, Dauer) { 1 }
-		dev scoring (Dauer) { exp(-t / var0) }
-	}
-	strain average_N2 {
-		stage Egg 1
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage L3 1
-		stage L4 1
-		stage Young Adult 1
-		stage Adult[100] 0.1
-		stage Dauer 0
-
-		dev linear (Egg, L1) { 1 }
-		dev branching (L1, L2, L2d) { 0.5 }
-		dev linear (L2, L3) { 1 }
-		dev linear (L3, L4) { 1 }
-		dev linear (L4, Young Adult) { 1 }
-		dev linear (Young Adult, Adult) { 1 }
-		dev laying (Adult[i], Adult[i+1], Egg) { 2 }
-		dev laying (Adult[100], null, Egg) { 2 }
-		dev linear (L2d, Dauer) { 1 }
-		dev scoring (Dauer) { exp(-t / var0) }
-	}
-}
-
-# A long value denoting the initialisation seed. Useful for debugging or
-# recreating data. If not specified, the java method System.currentTimeMillis()
-# is used.
-# seed = 1
-
-# Specifies the number of threads to use. By default this will be the maximum
-# but this may be explicitely stated as so:
-# WARNING: Doesn't actually work ATM, has to be specified numerically.
-# thread_no = MAX_THREADS
-
-# Specifies the number of walkers to use.
-walker_no = 1012
-
-# The number of iterations to perform before recording data.
-burn_in_iteration_no = 500
-# The number of iterations to perform recording data (following the burn-in).
-recording_iteration_no = 1000
-# The number of assay iterations to use for estimating the survival function.
-# TODO: Improve this.
-assay_iteration_no = 100
-
-# The number of iterations to wait between taking checkpoints for resuming if
-# the program fails.
-checkpoint_no = 500
-# The number of iterations to wait between recording iterations.
-record_freq_no = 0
-
-# Detailed data flag creates an out.dat which contains a significant amount of
-# information regarding the simulation process. Note this may be quite large and
-# should be disabled when the simulation is known to work.
-detailed_data = true
-# Will force the program to run even if there are existing output files.
-# All output files will be deleted prior to running the simulation and will be
-# irretrievable.
-forced_run = false
-# Will require that the program is running from a fresh starting state. Set to
-# false if the use of a checkpoint is desired instead.
-new_run = true
-
-# Sets the number of pheromone channels to be initialised.
-pheromone_no = 1
-# Sets the initial conditions of the system by distributions.
-initial_conditions = {
-	food ~ normal(100000, 10000)
-	pheromone[1] = 0
-}
-# The animal zoo to use. Note that parameter order matters here.
-animal_zoo = {
-	# Define constants here.
-	# ln(#) is the natural logarithm function and is a pre-defined function.
-	score_lambda = ln(2)/(10)
-
-	# A simple model.
-	strain basic {
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage Dauer 0
-
-		dev branching (L1, L2, L2d) ~ logit(1 + food + pheromone[#] + food . food +
-															food . pheromone[#] + pheromone[#] . pheromone[#])
-		dev linear (L2d, Dauer) = 1
-		dev laying (L2, null, L3) = 100
-		# time is a pre-defined variable that calls upon the current expired time.
-		dev scoring (Dauer) = exp(-time * score_lambda)
-	}
-
-	# A simple N2 mimic.
-	strain simple_N2 {
-		stage Egg 1
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage L3 1
-		stage L4 1
-		stage Young Adult 1
-		stage Adult 1
-		stage Dauer 0
-
-		dev linear (Egg, L1) { 1 }
-		dev branching (L1, L2, L2d) { 0.5 }
-		dev linear (L2, L3) { 1 }
-		dev linear (L3, L4) { 1 }
-		dev linear (L4, Young Adult) { 1 }
-		dev linear (Young Adult, Adult) { 1 }
-		dev laying (Adult, null, Egg, 250) { 1 }
-		dev linear (L2d, Dauer) { 1 }
-		dev scoring (Dauer) { exp(-t * score_lambda) }
-	}
-	# The same as the simple but this extends the adult to producing progeny in
-	# pairs 100 times rather than all at once.
-	strain average_N2 {
-		stage Egg 1
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage L3 1
-		stage L4 1
-		stage Young Adult 1
-		stage Adult[100] 0.1
-		stage Dauer 0
-
-		dev linear (Egg, L1) { 1 }
-		dev branching (L1, L2, L2d) { 0.5 }
-		dev linear (L2, L3) { 1 }
-		dev linear (L3, L4) { 1 }
-		dev linear (L4, Young Adult) { 1 }
-		dev linear (Young Adult, Adult) { 1 }
-		dev laying (Adult[i], Adult[i+1], Egg) { 2 }
-		dev laying (Adult[100], null, Egg) { 2 }
-		dev linear (L2d, Dauer) { 1 }
-		dev scoring (Dauer) { exp(-t / var0) }
-	}
-	strain average_N2 {
-		stage Egg 1
-		stage L1 1
-		stage L2 1
-		stage L2d 1
-		stage L3 1
-		stage L4 1
-		stage Young Adult 1
-		stage Adult[100] 0.1
-		stage Dauer 0
-
-		dev linear (Egg, L1) { 1 }
-		dev branching (L1, L2, L2d) { 0.5 }
-		dev linear (L2, L3) { 1 }
-		dev linear (L3, L4) { 1 }
-		dev linear (L4, Young Adult) { 1 }
-		dev linear (Young Adult, Adult) { 1 }
-		

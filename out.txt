@@ -1,0 +1,32 @@
+================================================================================
+      __          __   ____    _____    __  __    _____   _____   __  __
+      \ \        / /  / __ \  |  __ \  |  \/  |  / ____| |_   _| |  \/  |
+       \ \  /\  / /  | |  | | | |__) | | \  / | | (___     | |   | \  / |
+        \ \/  \/ /   | |  | | |  _  /  | |\/| |  \___ \    | |   | |\/| |
+         \  /\  /    | |__| | | | \ \  | |  | |  ____) |  _| |_  | |  | |
+          \/  \/      \____/  |_|  \_\ |_|  |_| |_____/  |_____| |_|  |_|
+
+================================================================================
+ Authors: Arthur Hills, Mark Viney, Simon Harvey
+ Version: 0.0.2
+ Reference: Null====================================================================
+# input.txt
+# The following may be used as the input.txt file for repeating this
+# simulation:
+
+seed=1492522048850
+thread_no=1
+walker_no=4
+burn_in_iteration_no=1
+recording_iteration_no=200
+record_freq_no=1
+pheromone_no=1
+checkpoint_no=500
+initial_conditions={
+food ~ Normal(10000.0,100.0)
+pheromone[0] ~ Normal(10000.0,100.0)
+}
+forced_run=true
+new_run=true
+====================================================================
+Beginning Burn-In

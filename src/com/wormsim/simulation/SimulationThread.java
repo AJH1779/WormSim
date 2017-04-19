@@ -120,6 +120,12 @@ public class SimulationThread implements Runnable {
 				g.score(scoring_interface);
 			});
 		}
+		double inv_num = 1.0 / sim.getOptions().getAssayIterationNumber();
+		walker.recordScores(scores, inv_num);
+	}
+
+	public boolean isAlive() {
+		return thread.isAlive();
 	}
 
 	/**

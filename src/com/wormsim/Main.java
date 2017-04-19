@@ -137,8 +137,7 @@ public class Main {
 								OutputStream out = new BufferedOutputStream(
 												new FileOutputStream(file))) {
 					byte[] buffer = new byte[4096];
-					int read_bytes;
-					while ((read_bytes = in.read(buffer)) > 0) {
+					while (in.read(buffer) > 0) {
 						out.write(buffer);
 					}
 					LOG.log(Level.SEVERE, "Created input.txt.");

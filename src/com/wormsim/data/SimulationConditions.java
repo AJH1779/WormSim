@@ -70,18 +70,6 @@ public class SimulationConditions {
 	 * Returns the distribution associated with the specified string. See the
 	 * handbook for details of what is accepted. Or the code...
 	 *
-	 * @param str The distribution as a string.
-	 *
-	 * @return
-	 */
-	public static GroupDistribution stringToGroupDistribution(String str) {
-		throw new UnsupportedOperationException("NOT YET IMPLEMENTED");
-	}
-
-	/**
-	 * Returns the distribution associated with the specified string. See the
-	 * handbook for details of what is accepted. Or the code...
-	 *
 	 * @param str The string representing a distribution
 	 *
 	 * @return The distribution
@@ -137,31 +125,31 @@ public class SimulationConditions {
 						.readLine(), line_no[0]++) {
 			if (line.contains("~")) {
 				int index2 = line.indexOf('~');
-				String key2 = line.substring(0, index2).trim().toLowerCase(
-								Locale.getDefault());
+				String key2 = line.substring(0, index2).trim();
 				String entry2 = line.substring(index2 + 1).trim();
 				data.put(key2, entry2);
 			}
 		}
 		this.food_dist = stringToRealDistribution(data.get("food"));
+
 		int max = data.keySet().stream().filter((str) -> str
-						.matches("pheromone.*"))
+						.startsWith("pheromone"))
 						.reduce(0, (ai, b) -> {
-							int bi = Integer.valueOf(b.substring(b.indexOf('['), b
-											.indexOf(']') - 1).trim());
+							int bi = Integer.valueOf(b.substring(b.indexOf('[') + 1, b
+											.indexOf(']')).trim());
 							return Math.max(ai, bi);
 						}, (ai, bi) -> Math.max(ai, bi));
 		this.pheromone_dists = new RealDistribution[max];
-		data.entrySet().stream().filter((e) -> e.getKey().matches("pheromone.*"))
+		data.entrySet().stream().filter((e) -> e.getKey().startsWith("pheromone"))
 						.forEach((e) -> {
 							String key = e.getKey();
 							String value = e.getValue().trim();
-							int ref = Integer.valueOf(key.substring(key.indexOf('['), key
-											.indexOf(']') - 1).trim());
-							this.pheromone_dists[ref] = stringToRealDistribution(value);
+							int ref = Integer.valueOf(key.substring(key.indexOf('[') + 1, key
+											.indexOf(']')).trim());
+							this.pheromone_dists[ref - 1] = stringToRealDistribution(value);
 						});
 
-		this.group_dist = stringToGroupDistribution(data.get("groups"));
+		this.group_dist = new GroupDistribution(data);
 	}
 
 	/**
@@ -186,10 +174,10 @@ public class SimulationConditions {
 							String value = e.getValue().trim();
 							int ref = Integer.valueOf(key.substring(key.indexOf('['), key
 											.indexOf(']') - 1).trim());
-							this.pheromone_dists[ref] = stringToRealDistribution(value);
+							this.pheromone_dists[ref - 1] = stringToRealDistribution(value);
 						});
 
-		this.group_dist = stringToGroupDistribution(data.get("groups"));
+		this.group_dist = new GroupDistribution(data);
 	}
 
 	private final RealDistribution food_dist;

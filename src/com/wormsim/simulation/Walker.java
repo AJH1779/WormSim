@@ -6,9 +6,11 @@
 package com.wormsim.simulation;
 
 import com.wormsim.animals.AnimalZoo;
+import com.wormsim.data.TrackedValue.TrackedDouble;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math3.random.JDKRandomGenerator;
@@ -83,6 +85,7 @@ public class Walker implements Serializable {
 	private double current_fitness = 0.0;
 	private double prev_fitness = 0.0;
 	private final RandomGenerator rng;
+	private final HashMap<String, TrackedDouble> scores = new HashMap<>(16);
 	private final long seed;
 	private transient SimulationThread thread;
 	private final AnimalZoo zoo;
@@ -91,7 +94,10 @@ public class Walker implements Serializable {
 	 * Performs a metropolis-hastings check.
 	 */
 	public void check() {
-		if (rng.nextDouble() > current_fitness / prev_fitness) {
+		current_fitness = scores
+						.getOrDefault("TestStrain Dauer", TrackedDouble.ZERO)
+						.get();
+		if (prev_fitness != 0.0 || rng.nextDouble() > current_fitness / prev_fitness) {
 			current_fitness = prev_fitness;
 
 			// TODO: If any more objects contain tracked values, edit here.
@@ -165,5 +171,19 @@ public class Walker implements Serializable {
 	public void writeToWriter(BufferedWriter out)
 					throws IOException {
 		zoo.writeToWriter(out);
+		out.write(Double.toString(current_fitness));
+		out.newLine();
+	}
+
+	void recordScores(HashMap<String, Double> p_map, double p_inv) {
+		p_map.forEach((k, v) -> {
+			if (scores.containsKey(k)) {
+				scores.get(k).set(v * p_inv);
+			} else {
+				scores.put(k, new TrackedDouble(v * p_inv));
+			}
+		});
+		scores.entrySet().stream().filter((e) -> !p_map.containsKey(e.getKey()))
+						.forEach((e) -> e.getValue().set(0.0));
 	}
 }

@@ -74,6 +74,7 @@ public interface TrackedValue extends Serializable {
 	 */
 	public static class TrackedDouble implements TrackedValue {
 		private static final long serialVersionUID = 1L;
+		public static final TrackedDouble ZERO = new TrackedDouble(0.0);
 
 		private TrackedDouble(TrackedDouble t) {
 			this.value = t.value;
@@ -99,6 +100,7 @@ public interface TrackedValue extends Serializable {
 		private final ArrayList<TrackedDouble> all_related;
 		private final ArrayList<Double> history;
 		private double prev_value;
+		private double spread = 0.05;
 		private double value;
 
 		/**
@@ -117,7 +119,7 @@ public interface TrackedValue extends Serializable {
 		@Override
 		public void evolve(RandomGenerator rng) {
 			// TODO: Make there be a more controlled treatment of this variable.
-			value = rng.nextGaussian() + value;
+			value = rng.nextGaussian() * spread + value;
 		}
 
 		/**
@@ -139,7 +141,8 @@ public interface TrackedValue extends Serializable {
 			double psi__ = all_related.stream().mapToDouble((arr) -> arr.history
 							.stream().mapToDouble((d) -> d / (arr.history.size())).sum()
 							/ (all_related.size())).sum();
-			return all_related.stream().mapToDouble((arr) -> pow(arr.history.stream()
+			return all_related.stream().mapToDouble((arr) -> pow(arr.history
+							.stream()
 							.mapToDouble((d) -> d).sum() / (arr.history.size()) - psi__, 2)
 							* arr.history.size() / (all_related.size() - 1)).sum();
 		}
@@ -169,6 +172,10 @@ public interface TrackedValue extends Serializable {
 			double B = getBetweenVariance();
 			double W = getMeanWithinVariance();
 			return sqrt((N - 1.0) / N + B / (N * W));
+		}
+
+		public double getSpread() {
+			return spread;
 		}
 
 		/**
@@ -209,11 +216,22 @@ public interface TrackedValue extends Serializable {
 		@Override
 		public void retain() {
 			prev_value = value;
+			history.add(value);
 		}
 
 		@Override
 		public void revert() {
 			value = prev_value;
+			history.add(value);
+		}
+
+		public void set(double d) {
+			this.value = d;
+			retain();
+		}
+
+		public void setSpread(double p_spread) {
+			this.spread = p_spread;
 		}
 
 		/**

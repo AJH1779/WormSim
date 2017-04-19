@@ -36,12 +36,13 @@ public class AnimalStrain {
 	 *
 	 * @param str
 	 */
-	public AnimalStrain(AnimalStrain str) {
+	public AnimalStrain(AnimalStrain str, int phero_count) {
 		this.name = str.name;
-		this.phero_count = str.phero_count;
+		this.phero_count = phero_count;
 		this.stages = new HashMap<>(str.stages.size());
 	}
 
+	// TODO: Incorporate an immutable strain to compliment the animal zoo design.
 	private final String name;
 	private final int phero_count;
 

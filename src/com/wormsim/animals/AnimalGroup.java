@@ -17,7 +17,7 @@ import org.apache.commons.math3.random.RandomGenerator;
  * @author ah810
  * @version 0.0.1
  */
-public class AnimalGroup {
+public class AnimalGroup implements Comparable {
 	private static final Logger LOG = Logger
 					.getLogger(AnimalGroup.class.getName());
 
@@ -47,6 +47,28 @@ public class AnimalGroup {
 	private final AnimalStage animal;
 	private final int count;
 	private double dev_time_rem;
+
+	/**
+	 * Note: The natural ordering of this class foregoes the natural declaration
+	 * of equals(), or something like that.
+	 *
+	 * @param p_o
+	 *
+	 * @return
+	 */
+	@Override
+	public int compareTo(Object p_o) {
+		if (p_o instanceof AnimalGroup) {
+			AnimalGroup that = (AnimalGroup) p_o;
+			return that.dev_time_rem > this.dev_time_rem
+							? -1
+							: (that.dev_time_rem < this.dev_time_rem
+											? 1
+											: 0);
+		} else {
+			throw new ClassCastException("Invalid Class: " + p_o.getClass());
+		}
+	}
 
 	/**
 	 * Consumes food over the specified time period.
@@ -101,7 +123,7 @@ public class AnimalGroup {
 	public double getDevelopmentTimeRemaining() {
 		return dev_time_rem;
 	}
-	
+
 	public void score(ScoringInterface iface) {
 		animal.score(iface, count);
 	}

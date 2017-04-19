@@ -5,6 +5,7 @@
  */
 package com.wormsim.animals;
 
+import com.wormsim.data.TrackedValue;
 import com.wormsim.data.TrackedValue.TrackedDecisionFunction;
 import com.wormsim.data.TrackedValue.TrackedScoringFunction;
 import com.wormsim.simulation.SimulationThread;
@@ -69,6 +70,8 @@ public abstract class AnimalDevelopment {
 	public AnimalStage getPrevStage() {
 		return prev;
 	}
+
+	public abstract Stream<TrackedValue> getTrackedValues();
 
 	/**
 	 * Denotes a developmental switch that produces two different stages, acting
@@ -168,6 +171,15 @@ public abstract class AnimalDevelopment {
 			return next;
 		}
 
+		@Override
+		public Stream<TrackedValue> getTrackedValues() {
+			if (decision instanceof TrackedValue) {
+				return Stream.of((TrackedValue) decision);
+			} else {
+				return Stream.<TrackedValue>empty();
+			}
+		}
+
 	}
 
 	/**
@@ -188,8 +200,8 @@ public abstract class AnimalDevelopment {
 		public Laying(AnimalStage prev, AnimalStage next, AnimalStage egg_next,
 									DevelopmentFunction decision) {
 			super(prev);
-			if (prev.getStrain() != next.getStrain() || next.getStrain() != egg_next
-							.getStrain()) {
+			if (prev.getStrain() != egg_next.getStrain() || (next != null && next
+							.getStrain() != egg_next.getStrain())) {
 				throw new IllegalArgumentException("Incompatible strains (from.strain="
 								+ prev.getStrain().getName() + ", to.strain=" + next.getStrain()
 								.getName() + ", egg_to.strain=" + egg_next.getStrain().getName()
@@ -207,7 +219,9 @@ public abstract class AnimalDevelopment {
 		public AnimalDevelopment.Laying changeZoo(AnimalZoo zoo) {
 			return new AnimalDevelopment.Laying(
 							zoo.getAnimalStage(getPrevStage().getFullName()),
-							zoo.getAnimalStage(next.getFullName()),
+							next == null
+											? null
+											: zoo.getAnimalStage(next.getFullName()),
 							zoo.getAnimalStage(egg_next.getFullName()),
 							(decision instanceof TrackedDecisionFunction
 											? ((TrackedDecisionFunction) decision).copy()
@@ -249,6 +263,15 @@ public abstract class AnimalDevelopment {
 		 */
 		public AnimalStage getNextStage() {
 			return next;
+		}
+
+		@Override
+		public Stream<TrackedValue> getTrackedValues() {
+			if (decision instanceof TrackedValue) {
+				return Stream.of((TrackedValue) decision);
+			} else {
+				return Stream.<TrackedValue>empty();
+			}
 		}
 
 	}
@@ -323,6 +346,15 @@ public abstract class AnimalDevelopment {
 		public AnimalStage getNextStage() {
 			return next;
 		}
+
+		@Override
+		public Stream<TrackedValue> getTrackedValues() {
+			if (decision instanceof TrackedValue) {
+				return Stream.of((TrackedValue) decision);
+			} else {
+				return Stream.<TrackedValue>empty();
+			}
+		}
 	}
 
 	/**
@@ -374,6 +406,15 @@ public abstract class AnimalDevelopment {
 		 */
 		public ScoringFunction getScoringFunction() {
 			return decision;
+		}
+
+		@Override
+		public Stream<TrackedValue> getTrackedValues() {
+			if (decision instanceof TrackedValue) {
+				return Stream.of((TrackedValue) decision);
+			} else {
+				return Stream.<TrackedValue>empty();
+			}
 		}
 	}
 }

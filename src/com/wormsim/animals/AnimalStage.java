@@ -5,7 +5,6 @@
  */
 package com.wormsim.animals;
 
-import com.wormsim.data.TrackedValue.TrackedDouble;
 import com.wormsim.simulation.SimulationThread.ScoringInterface;
 import java.util.logging.Logger;
 
@@ -27,13 +26,13 @@ public final class AnimalStage {
 	 * @param strain The strain of the animal
 	 */
 	public AnimalStage(String name, AnimalStrain strain) {
-		this.food_rate = new TrackedDouble(1.0);
+		this.food_rate = 1.0;
 		this.name = name;
 		this.strain = strain;
 
-		this.pheromone_rates = new TrackedDouble[strain.getPheromoneCount()];
+		this.pheromone_rates = new double[strain.getPheromoneCount()];
 		for (int i = 0; i < this.pheromone_rates.length; i++) {
-			this.pheromone_rates[i] = new TrackedDouble(1.0);
+			this.pheromone_rates[i] = 1.0;
 		}
 	}
 
@@ -51,19 +50,20 @@ public final class AnimalStage {
 		this.name = stage.name;
 		this.strain = strain;
 
-		this.food_rate = stage.food_rate.copy();
-		this.pheromone_rates = new TrackedDouble[strain.getPheromoneCount()];
-		for (int i = 0; i < this.pheromone_rates.length; i++) {
-			this.pheromone_rates[i] = stage.pheromone_rates[i].copy();
-		}
+		this.food_rate = stage.food_rate;
+		this.pheromone_rates = new double[strain.getPheromoneCount()];
+		System.arraycopy(stage.pheromone_rates, 0, this.pheromone_rates, 0,
+						stage.pheromone_rates.length);
 
 		this.strain.addStage(this);
 	}
+	// TODO: Make a Tracked Value or make it a container of tracked values
+	// as won't be able to fulfil the default copy.
 	private double dev_time = 1.0;
 	private AnimalDevelopment development;
-	private final TrackedDouble food_rate;
+	private final double food_rate;
 	private final String name;
-	private final TrackedDouble[] pheromone_rates;
+	private final double[] pheromone_rates;
 	private final AnimalStrain strain;
 
 	/**
@@ -90,7 +90,7 @@ public final class AnimalStage {
 	 * @return The food consumption rate
 	 */
 	public double getFoodConsumptionRate() {
-		return food_rate.get();
+		return food_rate;
 	}
 
 	/**
@@ -123,7 +123,7 @@ public final class AnimalStage {
 		if (ref < 0 || ref >= pheromone_rates.length) {
 			return 0.0;
 		} else {
-			return pheromone_rates[ref].get();
+			return pheromone_rates[ref];
 		}
 	}
 

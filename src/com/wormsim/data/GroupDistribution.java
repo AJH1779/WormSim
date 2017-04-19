@@ -100,9 +100,11 @@ public class GroupDistribution {
 	 */
 	public GroupDistribution(HashMap<String, String> data) {
 		dists = new HashMap<>(data.size());
-		data.forEach((k, v) -> {
-			dists.put(k, stringToIntegerDistribution(v));
-		});
+		data.entrySet().stream().filter(
+						(e) -> !(e.getKey().startsWith("food") || e.getKey().startsWith(
+						"pheromone"))).forEach((e) -> {
+							dists.put(e.getKey(), stringToIntegerDistribution(e.getValue()));
+						});
 	}
 	private final HashMap<String, IntegerDistribution> dists;
 
@@ -116,8 +118,7 @@ public class GroupDistribution {
 	public Collection<AnimalGroup> sample(AnimalZoo zoo) {
 		HashSet<AnimalGroup> groups = new HashSet<>(dists.size());
 		dists.forEach((k, v) -> groups.add(new AnimalGroup(zoo.getAnimalStage(k),
-						v
-										.sample())));
+						v.sample())));
 		return groups;
 	}
 }

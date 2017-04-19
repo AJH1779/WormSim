@@ -16,6 +16,7 @@ import org.apache.commons.math3.random.RandomGenerator;
  * @author ah810
  * @version 0.0.1
  */
+@FunctionalInterface
 public interface DevelopmentFunction {
 	/**
 	 * Returns a development function which is represented by the specified

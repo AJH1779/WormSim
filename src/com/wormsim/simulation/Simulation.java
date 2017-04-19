@@ -63,17 +63,22 @@ public class Simulation implements Runnable {
 		this.walkers = new ArrayList<>((options.getWalkerNumber() * 11) / 10);
 		this.rng = new Random(ops.getRandomSeed());
 
-		this.out_file = new File(ops.getDirectory(), OUT_TXT); // Always on output.
-		this.data_file = new File(ops.getDirectory(), DATA_DAT); // Detailed data file
-		if (this.data_file.exists() && ops.getRecordDetailedData()) {
+		this.out_file = new File(ops.getDirectory(), OUT_TXT);
+		this.data_file = new File(ops.getDirectory(), DATA_DAT);
+		if (this.data_file.exists() && ops.getRecordDetailedData() && !ops
+						.getForcedRun()) {
 			LOG.log(Level.SEVERE,
-							"Warning: The data.dat file already exists in the target directory. Delete or move it to run the program. (Located at {0})",
+							"Warning: The data.dat file already exists in the target "
+							+ "directory. Delete or move it to run the program. (Located at "
+							+ "{0})",
 							this.data_file);
+			throw new AssertionError("INVALID CODE");
 		}
 		if (this.out_file.exists() && !ops.getForcedRun()) {
 			LOG.log(Level.SEVERE,
 							"Warning: The " + OUT_TXT
-							+ " file already exists in the target directory. Delete or move it to run the program. (Located at {0})",
+							+ " file already exists in the target directory. Delete or move "
+							+ "it to run the program. (Located at {0})",
 							this.out_file);
 			throw new RuntimeException(OUT_TXT + " file already exists!");
 		}
@@ -176,7 +181,7 @@ public class Simulation implements Runnable {
 	 */
 	private void reset()
 					throws IOException {
-		if (out_file.exists()) {
+		if (out_file.exists() && !options.getForcedRun()) {
 			throw new IOException(
 							"The file \"" + OUT_TXT
 							+ "\" already exists and would be overwritten by "
@@ -262,6 +267,7 @@ public class Simulation implements Runnable {
 			thread = Thread.currentThread();
 			isrunning = true;
 			reset();
+			// TODO: Is not thread safe.
 			while (isrunning) {
 				iteration++;
 				if (iteration_walkers.isEmpty()) {
@@ -278,8 +284,16 @@ public class Simulation implements Runnable {
 						iteration_walkers.addAll(walkers);
 					}
 				}
-
-				// TODO: Place a limited here, but one that doesn't cause an impact on efficiency by imposing strange units on time.
+				try {
+					Thread.sleep(100);
+					// TODO: Place a limited here, but one that doesn't cause an impact on efficiency by imposing strange units on time.
+				} catch (InterruptedException ex) {
+				}
+				for (SimulationThread t : threads) {
+					if (!t.isAlive()) {
+						isrunning = false;
+					}
+				}
 			}
 		} catch (IOException ex) {
 			LOG.log(Level.SEVERE, "Fatal Unexpected Exception Thrown: {0}", ex);

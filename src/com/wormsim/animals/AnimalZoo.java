@@ -28,10 +28,53 @@ import org.apache.commons.math3.random.RandomGenerator;
 public class AnimalZoo implements TrackedValue {
 	private static final Logger LOG = Logger.getLogger(AnimalZoo.class.getName());
 	private static final long serialVersionUID = 1L;
+//	public static final Pattern LINE_PATTERN = Pattern.compile(
+//					"(strain[^\\v\\{]*\\{[.\\s\\S]*?(\\v\\t\\})|((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\}))");
+//	public static final Pattern STAGE_PATTERN = Pattern.compile(
+//					"\\v\\s*?stage\\s+.*?(\\s+?\\d+(.\\d+)?)+");
+//	public static final Pattern STRAIN_KEY_PATTERN = Pattern.compile(
+//					"(?<=strain)\\s+[^\\{]*");
+//	public static final Pattern STRAIN_PATTERN = Pattern.compile(
+//					"strain[^\\v\\{]*\\{[.\\s\\S]*?(\\v\\t\\})");
+//	public static final Pattern VALIDITY_PATTERN = Pattern.compile(
+//					"\\s*\\{[\\s\\S]*\\}\\s*");
 
 	public static AnimalZoo read(String str)
 					throws IOException {
-		throw new UnsupportedOperationException("Not Yet Implemented");
+		throw new UnsupportedOperationException("NYI");
+//		if (VALIDITY_PATTERN.matcher(str).matches()) {
+//			AnimalZoo.Builder zoo = new AnimalZoo.Builder();
+//
+//			BasicContext context = Context.GLOBAL_CONTEXT.push();
+//
+//			// TODO: Ensure the {} are cropped off, currently this allows illegal formatting.
+//			Matcher m = LINE_PATTERN.matcher(str);
+//			while (m.find()) {
+//				String mat = m.group();
+//				if (STRAIN_PATTERN.matcher(mat).matches()) {
+//					// Add the strain in.
+//					// Get the key
+//					Matcher m_skey = STRAIN_KEY_PATTERN.matcher(mat);
+//					assert m_skey.find();
+//					String strain_key = m_skey.group().trim();
+//					zoo.addAnimalStrain(strain_key);
+//					Matcher m_stage = STAGE_PATTERN.matcher(mat);
+//					while (m_stage.find()) {
+//						String stagestr = m_stage.group();
+//						zoo.addAnimalStage(strain_key, stage_name);
+//					}
+//				} else {
+//					// Must be equality.
+//					// TODO: Interpret the value and use it for the context.
+//				}
+//			}
+//
+//			// TODO: Edit AnimalStage for pheromone number to be applicable here.
+//			return zoo.create(0);
+//		} else {
+//			throw new IOException("Invalid format, must be enclosed within curly"
+//							+ " brackets ({}).");
+//		}
 	}
 
 	/**

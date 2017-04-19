@@ -29,51 +29,54 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * TODO: Include the ability to have legacy options in future.
 	 *
+	 * @param p_options
 	 * @param p_name        The name of this setting.
 	 * @param p_constructor
 	 *
 	 * @throws java.io.IOException Never thrown.
 	 */
-	public SimulationOptionSetting(String p_name,
-																 Constructor p_constructor)
+	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
+																 Constructor<T> p_constructor)
 					throws IOException {
-		this(p_name, p_constructor, null, null);
+		this(p_options, p_name, p_constructor, null, null);
 	}
 
 	/**
 	 * Creates a new simulation option with the specified key name and initial
 	 * value.
 	 *
+	 * @param p_options
 	 * @param p_name        The name of this setting.
 	 * @param p_constructor
 	 * @param p_value       The value of this setting.
 	 *
 	 * @throws IOException Never thrown.
 	 */
-	public SimulationOptionSetting(String p_name,
-																 Constructor p_constructor,
-																 T p_value)
+	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
+																 Constructor<T> p_constructor, T p_value)
 					throws IOException {
-		this(p_name, p_constructor, p_value, null);
+		this(p_options, p_name, p_constructor, p_value, null);
 	}
 
 	/**
 	 *
+	 * @param p_options
 	 * @param p_name
 	 * @param p_constructor
 	 * @param condition
 	 *
 	 * @throws IOException Never thrown.
 	 */
-	public SimulationOptionSetting(String p_name,
-																 Constructor p_constructor,
+	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
+																 Constructor<T> p_constructor,
 																 Predicate<T> condition)
 					throws IOException {
-		this(p_name, p_constructor, null, condition);
+		this(p_options, p_name, p_constructor, null, condition);
 	}
 
 	/**
 	 *
+	 * @param p_options
 	 * @param p_name
 	 * @param p_constructor
 	 * @param p_value
@@ -81,9 +84,9 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws IOException Thrown if the value does not fulfil the condition.
 	 */
-	public SimulationOptionSetting(String p_name,
-																 Constructor p_constructor,
-																 T p_value,
+	@SuppressWarnings("LeakingThisInConstructor")
+	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
+																 Constructor<T> p_constructor, T p_value,
 																 Predicate<T> condition)
 					throws IOException {
 		if (condition == null || p_value == null || condition.test(p_value)) {
@@ -93,10 +96,13 @@ public final class SimulationOptionSetting<T> {
 		}
 		this.name = p_name;
 		this.condition = condition;
+		this.constructor = p_constructor;
+
+		p_options.settings.put(name, this);
 	}
 	private final Predicate<T> condition;
+	private final Constructor<T> constructor;
 	private final String name;
-	private Constructor p_constructor;
 	private T value;
 
 	/**
@@ -148,13 +154,18 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws IOException
 	 */
-	void set(T p_value)
+	public void set(T p_value)
 					throws IOException {
 		if (condition == null || p_value == null || condition.test(p_value)) {
 			this.value = p_value;
 		} else {
 			throw new IOException("Value is Invalid under the Condition.");
 		}
+	}
+
+	public void setFromString(String str)
+					throws IOException {
+		this.value = constructor.read(str);
 	}
 
 	public static interface Constructor<T> {

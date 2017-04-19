@@ -73,6 +73,8 @@ public class Simulation implements Runnable {
 							+ "{0})",
 							this.data_file);
 			throw new AssertionError("INVALID CODE");
+		} else {
+			this.data_file.delete();
 		}
 		if (this.out_file.exists() && !ops.getForcedRun()) {
 			LOG.log(Level.SEVERE,
@@ -184,7 +186,7 @@ public class Simulation implements Runnable {
 		// Currently records to a simple file for the sake of getting data.
 		// TODO: Record here if the otpions.getRecordDetailedData() is set to true.
 		try (BufferedWriter out
-						= new BufferedWriter(new FileWriter(data_file, true))) {
+						= new BufferedWriter(new FileWriter(data_file, data_file.exists()))) {
 			// Records the current state of the tracked values.
 			for (Walker w : walkers) {
 				w.writeToWriter(out);

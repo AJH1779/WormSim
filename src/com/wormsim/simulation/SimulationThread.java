@@ -371,7 +371,6 @@ public class SimulationThread implements Runnable {
 		 * @return True if added (always true)
 		 */
 		public boolean addScore(String ref, double del) {
-			System.out.println("Added Score: " + ref + " += " + del);
 			if (thread.scores.containsKey(ref)) {
 				thread.scores.put(ref, thread.scores.get(ref) + del);
 			} else {

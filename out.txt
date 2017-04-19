@@ -8,13 +8,13 @@
 
 ================================================================================
  Authors: Arthur Hills, Mark Viney, Simon Harvey
- Version: 0.0.2
- Reference: Null
+ Version: 0.0.3
+ Reference: null
 ================================================================================
 # input.txt
 # The following may be used as the input.txt file for repeating this simulation.
 
-seed=1492594174786
+seed=1492607100770
 thread_no=1
 walker_no=4
 burn_in_iteration_no=1

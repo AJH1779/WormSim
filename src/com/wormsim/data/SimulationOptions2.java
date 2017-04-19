@@ -13,10 +13,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * An object which represents the collection of simulation options combined from
@@ -26,6 +27,8 @@ import java.util.regex.Pattern;
  * @version 0.0.1
  */
 public final class SimulationOptions2 implements Serializable {
+	private static final Pattern ARGUMENT_PATTERN = Pattern.compile(
+					"((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\})");
 
 	private static final Logger LOG = Logger.getLogger(SimulationOptions2.class
 					.getName());
@@ -109,106 +112,97 @@ public final class SimulationOptions2 implements Serializable {
 	 */
 	public SimulationOptions2(SimulationCommands cmds)
 					throws IOException {
+		this.settings = new NoReplaceHashMap<>();
+		// Initialise the variables for quick access.
+		// Additional variables can be created for access through the settings
+		// object, if a hack is being employed or something like that.
+		this.animal_zoo = new SimulationOptionSetting<>(this, ANIMAL_ZOO,
+						AnimalZoo::read);
+		this.assay_iteration_no = new SimulationOptionSetting<>(this,
+						ASSAY_ITERATION_NO, Utils::readInteger, null, (Integer i) -> i > 0);
+		this.burn_in_no = new SimulationOptionSetting<>(this, BURN_IN_NO,
+						Utils::readInteger, null, (i) -> i >= 0);
+		this.checkpoint_no = new SimulationOptionSetting<>(this, CHECKPOINT_NO,
+						Utils::readInteger, null, (i) -> i >= 0);
+		this.detailed_data = new SimulationOptionSetting<>(this, DETAILED_DATA,
+						Utils::readBoolean);
+		this.forced_run = new SimulationOptionSetting<>(this, FORCED_RUN,
+						Utils::readBoolean, Boolean.FALSE);
+		this.initial_conditions = new SimulationOptionSetting<>(this,
+						INITIAL_CONDITIONS, SimulationConditions::read);
+		this.new_run = new SimulationOptionSetting<>(this, FORCED_RUN,
+						Utils::readBoolean, Boolean.TRUE);
+		this.pheromone_no = new SimulationOptionSetting<>(this, PHEROMONE_NO,
+						Utils::readInteger, null, (i) -> i >= 0);
+		this.record_freq_no = new SimulationOptionSetting<>(this, RECORD_FREQ_NO,
+						Utils::readInteger, 1, (i) -> i > 0);
+		this.record_no = new SimulationOptionSetting<>(this, RECORD_NO,
+						Utils::readInteger, null, (i) -> i > 0);
+		this.seed = new SimulationOptionSetting<>(this, SEED, Utils::readLong,
+						System.currentTimeMillis());
+		this.thread_no = new SimulationOptionSetting<>(this, THREAD_NO,
+						Utils::readInteger, Runtime.getRuntime().availableProcessors(),
+						(i) -> i > 0L);
+		this.timeout = new SimulationOptionSetting<>(this, TIMEOUT,
+						Utils::readLong, null, (i) -> i >= 0L);
+		this.walker_no = new SimulationOptionSetting<>(this, WALKER_NO,
+						Utils::readInteger, null, (i) -> i > 0);
+
 		this.directory = cmds.getDirectory();
 		this.input = new File(cmds.getDirectory(), INPUT_TXT);
 		this.cmds = cmds;
 
 		readData2();
-		// */
-		Optional<SimulationOptionSetting> unfulfilled = settings.values().stream()
-						.filter((v) -> !v.isFulfilled()).findFirst();
-		if (unfulfilled.isPresent()) {
-			throw new IOException("Missing parameter: " + unfulfilled.get().getName());
+
+		if (settings.values().stream().noneMatch((v) -> !v.isFulfilled())) {
+			throw new IOException("Missing parameters: " + settings.values().stream()
+							.filter((v) -> !v.isFulfilled()).map((v) -> v.getName())
+							.collect(Collectors.joining(", ")));
 		}
 	}
 
-	private final SimulationOptionSetting<AnimalZoo> animal_zoo
-					= new SimulationOptionSetting<>(ANIMAL_ZOO, AnimalZoo::read);
-	private final SimulationOptionSetting<Integer> assay_iteration_no
-					= new SimulationOptionSetting<>(ASSAY_ITERATION_NO, Utils::readInteger,
-									null, (Integer i) -> i > 0);
-	private final SimulationOptionSetting<Integer> burn_in_no
-					= new SimulationOptionSetting<>(BURN_IN_NO, Utils::readInteger,
-									null, (i) -> i >= 0);
-	private final SimulationOptionSetting<Integer> checkpoint_no
-					= new SimulationOptionSetting<>(CHECKPOINT_NO, Utils::readInteger,
-									null, (i) -> i >= 0);
-	private final SimulationCommands cmds;
-	private final SimulationOptionSetting<Boolean> detailed_data
-					= new SimulationOptionSetting<>(DETAILED_DATA, Utils::readBoolean);
-	private final File directory;
-	private final SimulationOptionSetting<Boolean> forced_run
-					= new SimulationOptionSetting<>(FORCED_RUN, Utils::readBoolean,
-									Boolean.FALSE);
-	private final SimulationOptionSetting<SimulationConditions> initial_conditions
-					= new SimulationOptionSetting<>(INITIAL_CONDITIONS,
-									SimulationConditions::read);
-
-	private final File input;
-	private final SimulationOptionSetting<Boolean> new_run
-					= new SimulationOptionSetting<>(FORCED_RUN, Utils::readBoolean,
-									Boolean.TRUE);
-	private final SimulationOptionSetting<Integer> pheromone_no
-					= new SimulationOptionSetting<>(PHEROMONE_NO, Utils::readInteger,
-									null, (i) -> i >= 0);
-	private final SimulationOptionSetting<Integer> record_freq_no
-					= new SimulationOptionSetting<>(RECORD_FREQ_NO, Utils::readInteger,
-									1, (i) -> i > 0);
-	private final SimulationOptionSetting<Integer> record_no
-					= new SimulationOptionSetting<>(RECORD_NO, Utils::readInteger,
-									null, (i) -> i > 0);
-	private final SimulationOptionSetting<Long> seed
-					= new SimulationOptionSetting<>(SEED, Utils::readLong,
-									System.currentTimeMillis());
-	private final HashMap<String, SimulationOptionSetting> settings
-					= new HashMap<String, SimulationOptionSetting>() {
-		private static final long serialVersionUID = 1L;
-
-		{
-			put(ANIMAL_ZOO, animal_zoo);
-			put(ASSAY_ITERATION_NO, assay_iteration_no);
-			put(BURN_IN_NO, burn_in_no);
-			put(CHECKPOINT_NO, checkpoint_no);
-			put(DETAILED_DATA, detailed_data);
-			put(FORCED_RUN, forced_run);
-			put(INITIAL_CONDITIONS, initial_conditions);
-			put(FORCED_RUN, forced_run);
-			put(PHEROMONE_NO, pheromone_no);
-			put(RECORD_FREQ_NO, record_freq_no);
-			put(RECORD_NO, record_no);
-			put(SEED, seed);
-			put(THREAD_NO, thread_no);
-			put(TIMEOUT, timeout);
-			put(WALKER_NO, walker_no);
-		}
-	};
-	private final SimulationOptionSetting<Integer> thread_no
-					= new SimulationOptionSetting<>(THREAD_NO, Utils::readInteger,
-									Runtime.getRuntime().availableProcessors(), (i) -> i > 0);
-	private final SimulationOptionSetting<Long> timeout
-					= new SimulationOptionSetting<>(TIMEOUT, Utils::readLong,
-									null, (i) -> i >= 0);
-	private final SimulationOptionSetting<Integer> walker_no
-					= new SimulationOptionSetting<>(WALKER_NO, Utils::readInteger,
-									null, (i) -> i > 0);
+	// NOTE: These are made public for the sake of efficiency at the cost of security.
+	// The objects themselves should be made secure.
+	public final SimulationOptionSetting<AnimalZoo> animal_zoo;
+	public final SimulationOptionSetting<Integer> assay_iteration_no;
+	public final SimulationOptionSetting<Integer> burn_in_no;
+	public final SimulationOptionSetting<Integer> checkpoint_no;
+	public final SimulationCommands cmds;
+	public final SimulationOptionSetting<Boolean> detailed_data;
+	public final File directory;
+	public final SimulationOptionSetting<Boolean> forced_run;
+	public final SimulationOptionSetting<SimulationConditions> initial_conditions;
+	public final File input;
+	public final SimulationOptionSetting<Boolean> new_run;
+	public final SimulationOptionSetting<Integer> pheromone_no;
+	public final SimulationOptionSetting<Integer> record_freq_no;
+	public final SimulationOptionSetting<Integer> record_no;
+	public final SimulationOptionSetting<Long> seed;
+	public final HashMap<String, SimulationOptionSetting> settings;
+	public final SimulationOptionSetting<Integer> thread_no;
+	public final SimulationOptionSetting<Long> timeout;
+	public final SimulationOptionSetting<Integer> walker_no;
 
 	public void readData2()
 					throws IOException {
-		if (input == null) {
-			throw new NullPointerException("Provided input file is a null pointer!");
-		} else if (!input.exists()) {
+		assert input != null;
+		if (!input.exists()) {
 			throw new FileNotFoundException(
 							"There is no \"input.txt\" to read from!");
 		}
-
-		try (Scanner in = new Scanner(input)) {
-			// Detects the names, but has to be trimmed.
-
+		try (Scanner s = new Scanner(input)) {
+			String str;
+			while ((str = s.findWithinHorizon(ARGUMENT_PATTERN, 0)) != null) {
+				// Should return "key = value"
+				String[] keyvalue = str.split("=", 2);
+				SimulationOptionSetting get = settings.get(keyvalue[0].trim());
+				if (get == null) {
+					throw new IOException("Invalid Key Name: \"" + keyvalue[0] + "\"");
+				}
+				get.setFromString(keyvalue[1].trim());
+			}
 		}
 	}
-
-	private static final Pattern ARGUMENT_PATTERN = Pattern.compile(
-					"((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\})");
 
 	/**
 	 * Outputs the data of this object in the "input.txt" file format.
@@ -223,6 +217,20 @@ public final class SimulationOptions2 implements Serializable {
 			out.write(setting.getName());
 			out.write(" = ");
 			out.write(setting.get().toString());
+		}
+	}
+
+	private static class NoReplaceHashMap<K, V> extends HashMap<K, V> {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Object clone() {
+			return super.clone(); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public V put(K k, V v) {
+			throw new UnsupportedOperationException("Use putIfAbsent instead!");
 		}
 	}
 }

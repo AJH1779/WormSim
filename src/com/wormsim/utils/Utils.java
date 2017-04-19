@@ -77,10 +77,6 @@ public class Utils {
 		}
 	}
 
-	public static void main(String[] arg) {
-		System.out.println(logistic(1.0));
-	}
-
 	public static Integer readInteger(String str)
 					throws IOException {
 		try {
@@ -90,10 +86,10 @@ public class Utils {
 		}
 	}
 
-	public static Integer readLong(String str)
+	public static Long readLong(String str)
 					throws IOException {
 		try {
-			return Integer.valueOf(str);
+			return Long.valueOf(str);
 		} catch (NumberFormatException ex) {
 			throw new IOException(ex);
 		}

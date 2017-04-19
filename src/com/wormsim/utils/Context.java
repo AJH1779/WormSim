@@ -10,6 +10,8 @@ import org.apache.commons.math3.util.FastMath;
 
 /**
  *
+ * TODO: Replace with the version worked on at home.
+ *
  * @author ah810
  */
 public abstract class Context implements Cloneable {
@@ -44,10 +46,16 @@ public abstract class Context implements Cloneable {
 
 	public final static class BasicContext extends Context {
 		public BasicContext() {
+			this(null);
+		}
+
+		public BasicContext(Context parent) {
+			this.parent = parent;
 			this.variables = new HashMap<>();
 			this.methods = new HashMap<>();
 		}
 		private final HashMap<String, Method> methods;
+		private final Context parent;
 		private final HashMap<String, Double> variables;
 
 		public void addMethod(String ref, Method method) {
@@ -69,13 +77,34 @@ public abstract class Context implements Cloneable {
 
 		@Override
 		public double get(String ref) {
-			return variables.getOrDefault(ref, 0.0);
+			Double val = variables.get(ref);
+			if (val == null) {
+				if (parent != null) {
+					return parent.get(ref);
+				} else {
+					return 0.0;
+				}
+			} else {
+				return val;
+			}
 		}
 
 		@Override
 		public Method getMethod(String ref) {
-			return methods.getOrDefault(ref, Method.ZERO);
+			Method meth = methods.get(ref);
+			if (meth == null) {
+				if (parent != null) {
+					return parent.getMethod(ref);
+				} else {
+					return Method.ZERO;
+				}
+			} else {
+				return meth;
+			}
 		}
 
+		public BasicContext push() {
+			return new BasicContext(this);
+		}
 	}
 }

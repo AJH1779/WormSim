@@ -28,14 +28,19 @@ import java.util.logging.Logger;
  * This is the class from which the program should be run.
  *
  * @author ah810
- * @version 0.0.2
+ * @version 0.0.3
  *
  * @see Main#main(java.lang.String[]) For the details of how to launch this
  * program.
  */
 public class Main {
 	/**
-	 * Cited authors should be added here.
+	 * The array of authors to be cited in the order that they should appear in
+	 * print.
+	 *
+	 * TODO: Codes for joint positions?
+	 *
+	 * @since 0.0.1
 	 */
 	private static final String[] AUTHOR_ARRAY = new String[]{
 		"Arthur Hills",
@@ -46,24 +51,41 @@ public class Main {
 	private static final Logger LOG = Logger.getLogger(Main.class.getName());
 
 	/**
-	 * An immutable list of the authors of the program and theory or stuff.
+	 * An immutable list containing the authors of the program in the order that
+	 * they should appear in reference. Currently this is used only for the
+	 * informative output file normally denoted "out.txt".
+	 *
+	 * @since 0.0.1
 	 */
 	public static final List<String> AUTHORS = Collections.unmodifiableList(Arrays
 					.asList(AUTHOR_ARRAY));
 	/**
-	 * A comma delimited list of the authors.
+	 * A comma delimited list of the authors to be cited in the order that they
+	 * should appear in print. Currently this is used only for the informative
+	 * output file normally denoted "out.txt".
+	 *
+	 * @since 0.0.1
 	 */
 	public static final String AUTHORS_AS_STRING = String.join(", ", AUTHOR_ARRAY);
 	/**
-	 * The literature reference for use of this program.
+	 * The literature reference for use of this program. Currently this is used
+	 * only for the informative output file normally denoted "out.txt", but will
+	 * in future contain the program that has to be referenced by anyone who uses
+	 * this program to generate data for their work.
 	 *
 	 * TODO: Apply a reference when it is available.
+	 *
+	 * @since 0.0.1
 	 */
-	public static final String REFERENCE = "Null";
+	public static final String REFERENCE = "null";
 	/**
 	 * The version code of this program.
+	 *
+	 * TODO: Keep Updated.
+	 *
+	 * @since 0.0.1
 	 */
-	public static final String VERSION = "0.0.2";
+	public static final String VERSION = "0.0.3";
 
 	/**
 	 * Outputs the help dialogue to the command line which outlines all of the
@@ -73,9 +95,13 @@ public class Main {
 	 *
 	 * @see header.txt for the header text.
 	 * @see help.txt for the full help text.
+	 *
+	 * @since 0.0.1
 	 */
 	@SuppressWarnings("UseOfSystemOutOrSystemErr")
 	public static void help() {
+		// TODO: Move these scanner outputs to a more consistent environment.
+		// TODO: Move the files to their own package.
 		System.out.println(new Scanner(Main.class.getResourceAsStream(
 						"/com/wormsim/header.txt")).useDelimiter("\\Z").next()
 						.replace("{authors}", AUTHORS_AS_STRING)
@@ -94,6 +120,8 @@ public class Main {
 	 * @param args the command line arguments
 	 *
 	 * @see help.txt For the commands that are accepted on the command line.
+	 *
+	 * @since 0.0.1
 	 */
 	public static void main(String[] args)
 					throws IllegalArgumentException {
@@ -114,24 +142,32 @@ public class Main {
 			}
 		}
 		// Check if any of the commands are something to act upon right now, like help.
+		// WARNING: Hard Coded Parameters.
 		if (data.containsKey("-h") || data.containsKey("--help")) {
 			// Print out the help and then terminate, although the other arguments should
 			// also be checked to see if they are relevant.
 			help();
-			System.exit(0);
+			System.exit(0); // Generally not recommended, but should be fine here.
+			// TODO: Detailed information as per argument for help?
 		}
 		SimulationCommands cmds = new SimulationCommands(data);
+
 		try {
+			// TODO: Switch to SimulationOptions2.
 			SimulationOptions ops = new SimulationOptions(cmds);
 			new Simulation(ops).run();
 		} catch (FileNotFoundException ex) {
-			LOG.log(Level.SEVERE, "No input.txt found!");
+			// TODO: An output for the command line that isn't scary looking, it
+			// should just be informative.
+			LOG.log(Level.SEVERE, "No \"input.txt\" file found!");
 			File file = new File(cmds.getDirectory(), "input.txt");
 			if (file.exists()) {
-				LOG.log(Level.SEVERE, "Couldn't create file as it already exists!");
+				// An impossible situation in theory.
+				throw new AssertionError("Couldn't create file as it already exists!",
+								ex);
 			} else {
 				// A sloppy write out.
-				// TODO: Cleanup and ensure is right.
+				// TODO: Replace with a Files.copy or some similar control.
 				try (InputStream in = Main.class.getResourceAsStream(
 								"/com/wormsim/default_input.txt");
 								OutputStream out = new BufferedOutputStream(
@@ -146,7 +182,11 @@ public class Main {
 				}
 			}
 		} catch (IOException ex) {
+			// TODO: Logger should be better used here or not used at all.
+			// TODO: What is the problem and how is it fixed?
 			LOG.log(Level.SEVERE, null, ex);
+			// TODO: Exit Error Codes?
+			System.exit(-1);
 		}
 	}
 }

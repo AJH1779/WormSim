@@ -186,6 +186,11 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
+	public void initialise(RandomGenerator p_rng) {
+		this.tracked_values.stream().forEach((v) -> v.initialise(p_rng));
+	}
+
+	@Override
 	public void retain() {
 		this.tracked_values.stream().forEach((v) -> v.retain());
 	}

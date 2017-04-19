@@ -7,10 +7,13 @@ package com.wormsim.data;
 
 import com.wormsim.animals.AnimalGroup;
 import com.wormsim.animals.AnimalZoo;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
@@ -34,7 +37,7 @@ public class GroupDistribution {
 	 *
 	 * @return The distribution as a string.
 	 */
-	public static String realDistributionToString(IntegerDistribution dist) {
+	public static String integerDistributionToString(IntegerDistribution dist) {
 		if (dist instanceof EnumeratedIntegerDistribution) {
 			return Double.toString(dist.getNumericalMean());
 		} else if (dist instanceof UniformIntegerDistribution) {
@@ -120,5 +123,17 @@ public class GroupDistribution {
 		dists.forEach((k, v) -> groups.add(new AnimalGroup(zoo.getAnimalStage(k),
 						v.sample())));
 		return groups;
+	}
+
+	public void write(BufferedWriter p_out)
+					throws IOException {
+		for (Entry<String, IntegerDistribution> dist : dists.entrySet()) {
+			p_out.write("\t");
+			p_out.write(dist.getKey());
+			p_out.write(" ~ ");
+			p_out.write(GroupDistribution.integerDistributionToString(
+							dist.getValue()));
+			p_out.newLine();
+		}
 	}
 }

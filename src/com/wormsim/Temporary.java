@@ -10,7 +10,6 @@ import com.wormsim.animals.AnimalStage;
 import com.wormsim.animals.AnimalStrain;
 import com.wormsim.animals.AnimalZoo;
 import com.wormsim.data.TrackedDevelopmentFunction;
-import com.wormsim.data.TrackedValue;
 import com.wormsim.simulation.SimulationThread;
 import com.wormsim.utils.Utils;
 import java.io.BufferedWriter;
@@ -36,10 +35,10 @@ public class Temporary {
 		AnimalZoo zoo = new AnimalZoo();
 		AnimalStrain strain = new AnimalStrain("TestStrain", 0);
 		AnimalStage[] stages = {
-			new AnimalStage("L1", strain),
-			new AnimalStage("L2", strain),
-			new AnimalStage("L2d", strain),
-			new AnimalStage("Dauer", strain)
+			new AnimalStage("L1", strain, 1.0, 1.0, 1.0),
+			new AnimalStage("L2", strain, 1.0, 1.0, 1.0),
+			new AnimalStage("L2d", strain, 1.0, 1.0, 1.0),
+			new AnimalStage("Dauer", strain, 0.0, 0.0, 0.0)
 		};
 		AnimalDevelopment[] devs = {
 			new AnimalDevelopment.Branching(stages[0], stages[1], stages[2],
@@ -81,15 +80,12 @@ public class Temporary {
 				values[i] = new TrackedDouble(0.0);
 			}
 		}
-		private final TrackedDouble[] values = new TrackedDouble[4];
+		private final TrackedDouble[] values = new TrackedDouble[1];
 
 		@Override
 		public int applyAsInt(SimulationThread.SamplingInterface p_iface,
 													int p_count, RandomGenerator p_rng) {
-			double prob = Utils.logistic(
-							values[0].get() + values[1].get() * p_iface.getFood()
-							+ values[2].get() * p_iface.getPheromone(0)
-							+ values[3].get() * p_iface.getPheromone(0) * p_iface.getFood());
+			double prob = Utils.logistic(values[0].get());
 			return new BinomialDistribution(p_rng, p_count, prob).sample();
 		}
 
@@ -106,6 +102,13 @@ public class Temporary {
 		public void evolve(RandomGenerator p_rng) {
 			for (TrackedDouble value : values) {
 				value.evolve(p_rng);
+			}
+		}
+
+		@Override
+		public void initialise(RandomGenerator p_rng) {
+			for (TrackedDouble value : values) {
+				value.initialise(p_rng);
 			}
 		}
 

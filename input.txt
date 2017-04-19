@@ -46,7 +46,7 @@ new_run = true
 pheromone_no = 1
 # Sets the initial conditions of the system by distributions.
 initial_conditions = {
-	food ~ normal(10000, 1000)
+	food ~ normal(100000, 10000)
 	pheromone[1] ~ 0
-	TestStrain L1 ~ 1
+	TestStrain L2 ~ 1
 }

@@ -128,6 +128,28 @@ public class Simulation implements Runnable {
 		}
 	}
 
+	private void end() {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(out_file, true))) {
+			out.write(
+							"================================================================================");
+			out.newLine();
+			// Append input file
+			out.write("COMPLETED DATA GENERATION");
+			out.newLine();
+			out.write(
+							"TODO: Useful summary data goes here.");
+			out.newLine();
+			out.write(
+							"================================================================================");
+			out.newLine();
+			out.write("TODO: More detailed summary data goes here.");
+			out.newLine();
+			out.flush();
+		} catch (IOException ex) {
+			Logger.getLogger(Simulation.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
 	/**
 	 * Returns true if this iteration has reached a checkpoint and so should be
 	 * recorded as a restartable place.
@@ -204,21 +226,20 @@ public class Simulation implements Runnable {
 							.replace("{authors}", AUTHORS_AS_STRING)
 							.replace("{version}", VERSION)
 							.replace("{reference}", REFERENCE));
+			out.newLine();
 			out.write(
-							"====================================================================");
+							"================================================================================");
 			out.newLine();
 			// Append input file
 			out.write("# input.txt");
 			out.newLine();
 			out.write(
-							"# The following may be used as the input.txt file for repeating this");
-			out.newLine();
-			out.write("# simulation:");
+							"# The following may be used as the input.txt file for repeating this simulation.");
 			out.newLine();
 			out.newLine();
 			this.options.write(out);
 			out.write(
-							"====================================================================");
+							"================================================================================");
 			out.newLine();
 			out.write("Beginning Burn-In");
 			out.newLine();
@@ -279,6 +300,7 @@ public class Simulation implements Runnable {
 						// checkpoint();
 					}
 					if (reachedEnd()) {
+						end();
 						isrunning = false;
 					} else {
 						iteration_walkers.addAll(walkers);

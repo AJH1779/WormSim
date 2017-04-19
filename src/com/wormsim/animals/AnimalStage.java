@@ -19,6 +19,8 @@ public final class AnimalStage {
 	private static final Logger LOG = Logger
 					.getLogger(AnimalStage.class.getName());
 
+	private static int ID = 0;
+
 	/**
 	 * Creates a new stage for the animal with the specified name and strain.
 	 *
@@ -29,12 +31,55 @@ public final class AnimalStage {
 		this.food_rate = 1.0;
 		this.name = name;
 		this.strain = strain;
+		this.id = ID++;
+
+		this.pheromone_rates = new double[strain.getPheromoneCount()];
+
+		this.dev_time = 1.0;
+	}
+
+	public AnimalStage(String p_name, AnimalStrain p_strain, double p_dev_time,
+										 double food_rate) {
+		this.food_rate = food_rate;
+		this.name = p_name;
+		this.strain = p_strain;
+		this.id = ID++;
+
+		this.pheromone_rates = new double[p_strain.getPheromoneCount()];
+
+		this.dev_time = p_dev_time;
+	}
+
+	public AnimalStage(String name, AnimalStrain strain, double p_dev_time,
+										 double food_rate, double pheromone_rates) {
+		this.food_rate = food_rate;
+		this.name = name;
+		this.strain = strain;
+		this.id = ID++;
 
 		this.pheromone_rates = new double[strain.getPheromoneCount()];
 		for (int i = 0; i < this.pheromone_rates.length; i++) {
-			this.pheromone_rates[i] = 1.0;
+			this.pheromone_rates[i] = pheromone_rates;
 		}
+		this.dev_time = p_dev_time;
 	}
+
+	public AnimalStage(String name, AnimalStrain strain, double p_dev_time,
+										 double food_rate, double[] pheromone_rates) {
+		this.food_rate = food_rate;
+		this.name = name;
+		this.strain = strain;
+		this.id = ID++;
+
+		this.pheromone_rates = new double[strain.getPheromoneCount()];
+		for (int i = 0; i < this.pheromone_rates.length; i++) {
+			this.pheromone_rates[i] = pheromone_rates.length < i
+							? pheromone_rates[i]
+							: 0.0;
+		}
+		this.dev_time = p_dev_time;
+	}
+	public final int id;
 
 	/**
 	 * Creates a new stage cloning the provided stage but for the provided strain.
@@ -56,10 +101,13 @@ public final class AnimalStage {
 						stage.pheromone_rates.length);
 
 		this.strain.addStage(this);
+
+		this.id = ID++;
+		this.dev_time = stage.dev_time;
 	}
 	// TODO: Make a Tracked Value or make it a container of tracked values
 	// as won't be able to fulfil the default copy.
-	private double dev_time = 1.0;
+	private final double dev_time;
 	private AnimalDevelopment development;
 	private final double food_rate;
 	private final String name;
@@ -160,12 +208,13 @@ public final class AnimalStage {
 		this.development = dev;
 	}
 
-	/**
-	 * Sets the time required to develop to the next development stage.
-	 *
-	 * @param dev_time The new development time
-	 */
-	void setDevelopmentTime(double dev_time) {
-		this.dev_time = dev_time;
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof AnimalStage && ((AnimalStage) obj).id == id;
+	}
+
+	@Override
+	public int hashCode() {
+		return id;
 	}
 }

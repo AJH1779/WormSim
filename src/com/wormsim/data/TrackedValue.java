@@ -23,6 +23,9 @@ import static org.apache.commons.math3.util.FastMath.sqrt;
  * @version 0.0.1
  */
 public interface TrackedValue extends Serializable {
+
+	public void initialise(RandomGenerator rng);
+
 	/**
 	 * Provides an independent copy of this tracked value.
 	 *
@@ -100,7 +103,7 @@ public interface TrackedValue extends Serializable {
 		private final ArrayList<TrackedDouble> all_related;
 		private final ArrayList<Double> history;
 		private double prev_value;
-		private double spread = 0.05;
+		private double spread = 0.005;
 		private double value;
 
 		/**
@@ -201,6 +204,11 @@ public interface TrackedValue extends Serializable {
 							.sum();
 			return history.stream().mapToDouble((d) -> pow(d - psi_m, 2)
 							/ (history.size() - 1)).sum();
+		}
+
+		@Override
+		public void initialise(RandomGenerator p_rng) {
+
 		}
 
 		/**

@@ -63,7 +63,10 @@ public class SimulationThread implements Runnable {
 		}
 		groups.clear();
 		groups.addAll(sim.getInitialConditions().sampleGroups(walker.getZoo()));
-		scores.clear();
+	}
+
+	public boolean isAlive() {
+		return thread.isAlive();
 	}
 
 	@Override
@@ -73,6 +76,9 @@ public class SimulationThread implements Runnable {
 				// WARNING: Arbitrary timeout, should this be adjusted?
 				Walker walker = walkers.poll(1000, TimeUnit.MILLISECONDS);
 				if (walker != null) {
+					if (!walker.isInitialised()) {
+						walker.initialise();
+					}
 					walker.giveThread(this);
 					walker.evolve();
 					run(walker);
@@ -95,6 +101,7 @@ public class SimulationThread implements Runnable {
 	 */
 	public void run(Walker walker) {
 		thread = Thread.currentThread();
+		scores.clear();
 		for (int i = 0; i < sim.getOptions().getAssayIterationNumber(); i++) {
 			reset(walker);
 			time = 0.0;
@@ -122,10 +129,6 @@ public class SimulationThread implements Runnable {
 		}
 		double inv_num = 1.0 / sim.getOptions().getAssayIterationNumber();
 		walker.recordScores(scores, inv_num);
-	}
-
-	public boolean isAlive() {
-		return thread.isAlive();
 	}
 
 	/**
@@ -368,6 +371,7 @@ public class SimulationThread implements Runnable {
 		 * @return True if added (always true)
 		 */
 		public boolean addScore(String ref, double del) {
+			System.out.println("Added Score: " + ref + " += " + del);
 			if (thread.scores.containsKey(ref)) {
 				thread.scores.put(ref, thread.scores.get(ref) + del);
 			} else {

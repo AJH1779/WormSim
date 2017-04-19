@@ -83,6 +83,7 @@ public class Walker implements Serializable {
 		this.seed = seed;
 	}
 	private double current_fitness = 0.0;
+	private boolean initialised = false;
 	private double prev_fitness = 0.0;
 	private final RandomGenerator rng;
 	private final HashMap<String, TrackedDouble> scores = new HashMap<>(16);
@@ -97,9 +98,8 @@ public class Walker implements Serializable {
 		current_fitness = scores
 						.getOrDefault("TestStrain Dauer", TrackedDouble.ZERO)
 						.get();
-		if (prev_fitness != 0.0 || rng.nextDouble() > current_fitness / prev_fitness) {
+		if (prev_fitness != 0.0 && rng.nextDouble() > current_fitness / prev_fitness) {
 			current_fitness = prev_fitness;
-
 			// TODO: If any more objects contain tracked values, edit here.
 			zoo.revert();
 		} else {
@@ -119,7 +119,7 @@ public class Walker implements Serializable {
 	 * Alters the current configuration.
 	 */
 	public void evolve() {
-		// TODO: Evolve - based on the zoo.
+		// TODO: Evolving other characteristics?
 		zoo.evolve(rng);
 	}
 
@@ -158,6 +158,15 @@ public class Walker implements Serializable {
 	 */
 	public void giveThread(SimulationThread thread) {
 		this.thread = thread;
+	}
+
+	public void initialise() {
+		zoo.initialise(rng);
+		this.initialised = true;
+	}
+
+	public boolean isInitialised() {
+		return this.initialised;
 	}
 
 	/**

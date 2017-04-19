@@ -229,15 +229,15 @@ public class SimulationConditions {
 					throws IOException {
 		out.write("{");
 		out.newLine();
-		out.write("food ~ ");
+		out.write("\tfood ~ ");
 		out.write(realDistributionToString(food_dist));
 		out.newLine();
 		for (int i = 0; i < pheromone_dists.length; i++) {
-			out.write("pheromone[" + i + "] ~ ");
+			out.write("\tpheromone[" + i + "] ~ ");
 			out.write(realDistributionToString(food_dist));
 			out.newLine();
 		}
-		// TODO: Sample Groups
+		group_dist.write(out);
 		out.write("}");
 	}
 }

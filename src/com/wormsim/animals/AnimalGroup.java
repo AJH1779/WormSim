@@ -64,7 +64,7 @@ public class AnimalGroup implements Comparable {
 							? -1
 							: (that.dev_time_rem < this.dev_time_rem
 											? 1
-											: 0);
+											: (that.animal.id - this.animal.id));
 		} else {
 			throw new ClassCastException("Invalid Class: " + p_o.getClass());
 		}

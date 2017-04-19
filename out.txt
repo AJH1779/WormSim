@@ -9,12 +9,12 @@
 ================================================================================
  Authors: Arthur Hills, Mark Viney, Simon Harvey
  Version: 0.0.2
- Reference: Null====================================================================
+ Reference: Null
+================================================================================
 # input.txt
-# The following may be used as the input.txt file for repeating this
-# simulation:
+# The following may be used as the input.txt file for repeating this simulation.
 
-seed=1492522048850
+seed=1492594174786
 thread_no=1
 walker_no=4
 burn_in_iteration_no=1
@@ -23,10 +23,16 @@ record_freq_no=1
 pheromone_no=1
 checkpoint_no=500
 initial_conditions={
-food ~ Normal(10000.0,100.0)
-pheromone[0] ~ Normal(10000.0,100.0)
+	food ~ Normal(100000.0,1000.0)
+	pheromone[0] ~ Normal(100000.0,1000.0)
+	TestStrain L2 ~ 1.0
 }
 forced_run=true
 new_run=true
-====================================================================
+================================================================================
 Beginning Burn-In
+================================================================================
+COMPLETED DATA GENERATION
+TODO: Useful summary data goes here.
+================================================================================
+TODO: More detailed summary data goes here.

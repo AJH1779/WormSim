@@ -14,21 +14,26 @@
 # input.txt
 # The following may be used as the input.txt file for repeating this simulation.
 
-seed=1492607100770
-thread_no=1
-walker_no=4
-burn_in_iteration_no=1
-recording_iteration_no=200
-record_freq_no=1
-pheromone_no=1
-checkpoint_no=500
-initial_conditions={
-	food ~ Normal(100000.0,1000.0)
-	pheromone[0] ~ Normal(100000.0,1000.0)
+forced_run = true
+checkpoint_no = 0
+record_freq_no = 1
+seed = 1492693342141
+recording_iteration_no = 10000
+burn_in_iteration_no = 5000
+assay_iteration_no = 100
+new_run = true
+timeout = 0
+animal_zoo = com.wormsim.animals.AnimalZoo$Immutable@77a567e1
+detailed_data = true
+thread_no = 4
+initial_conditions = {
+	food ~ Normal(10000.0,1000.0)
+	pheromone[0] ~ 0.0
 	TestStrain L2 ~ 1.0
 }
-forced_run=true
-new_run=true
+
+walker_no = 16
+pheromone_no = 1
 ================================================================================
 Beginning Burn-In
 ================================================================================

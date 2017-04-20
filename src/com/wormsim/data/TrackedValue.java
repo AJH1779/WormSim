@@ -5,6 +5,7 @@
  */
 package com.wormsim.data;
 
+import com.sun.istack.internal.NotNull;
 import com.wormsim.animals.DevelopmentFunction;
 import com.wormsim.animals.ScoringFunction;
 import java.io.BufferedWriter;
@@ -24,13 +25,28 @@ import static org.apache.commons.math3.util.FastMath.sqrt;
  */
 public interface TrackedValue extends Serializable {
 
-	public void initialise(RandomGenerator rng);
+	public void initialise(@NotNull RandomGenerator rng);
+
+	/**
+	 * Returns the current value of the tracked value as a string.
+	 *
+	 * @return
+	 */
+	public String toCurrentValueString();
+
+	/**
+	 * Returns the headers of the tracked value as a string.
+	 *
+	 * @return
+	 */
+	public String toHeaderString();
 
 	/**
 	 * Provides an independent copy of this tracked value.
 	 *
 	 * @return An independent copy.
 	 */
+	@NotNull
 	public TrackedValue copy();
 
 	/**
@@ -50,7 +66,7 @@ public interface TrackedValue extends Serializable {
 	 *
 	 * @param rng The random number generator.
 	 */
-	public void evolve(RandomGenerator rng);
+	public void evolve(@NotNull RandomGenerator rng);
 
 	/**
 	 * Writes the current value of this tracked value to the given writer.
@@ -59,7 +75,7 @@ public interface TrackedValue extends Serializable {
 	 *
 	 * @throws IOException If any exception is thrown by the writer.
 	 */
-	public void writeToWriter(BufferedWriter out)
+	public void writeToWriter(@NotNull BufferedWriter out)
 					throws IOException;
 
 	/**
@@ -69,7 +85,7 @@ public interface TrackedValue extends Serializable {
 	 *
 	 * @throws IOException If any exception is thrown by the stream.
 	 */
-	public void writeToStream(ObjectOutputStream out)
+	public void writeToStream(@NotNull ObjectOutputStream out)
 					throws IOException;
 
 	/**
@@ -250,6 +266,16 @@ public interface TrackedValue extends Serializable {
 		 */
 		public boolean stopAffectingVariance() {
 			return this.all_related.remove(this);
+		}
+
+		@Override
+		public String toCurrentValueString() {
+			return Double.toString(this.value);
+		}
+
+		@Override
+		public String toHeaderString() {
+			return "NULL";
 		}
 
 		@Override

@@ -5,6 +5,7 @@
  */
 package com.wormsim;
 
+import com.sun.istack.internal.NotNull;
 import com.wormsim.animals.AnimalDevelopment;
 import com.wormsim.animals.AnimalStage;
 import com.wormsim.animals.AnimalStrain;
@@ -29,8 +30,10 @@ public class Temporary {
 	/**
 	 * A generic default animal zoo.
 	 */
+	@NotNull
 	public static final AnimalZoo CODED_ANIMAL_ZOO = newCodedAnimalZooInstance();
 
+	@NotNull
 	private static AnimalZoo newCodedAnimalZooInstance() {
 		AnimalZoo zoo = new AnimalZoo();
 		AnimalStrain strain = new AnimalStrain("TestStrain", 0);
@@ -63,9 +66,6 @@ public class Temporary {
 			zoo.addAnimalDevelopment(dev);
 		}
 		return zoo.copy();
-	}
-
-	public static void main(String[] args) {
 	}
 
 	private Temporary() {
@@ -124,6 +124,24 @@ public class Temporary {
 			for (TrackedDouble value : values) {
 				value.revert();
 			}
+		}
+
+		@Override
+		public String toCurrentValueString() {
+			StringBuilder b = new StringBuilder();
+			for (TrackedDouble value : values) {
+				b.append(value.toCurrentValueString());
+			}
+			return b.toString();
+		}
+
+		@Override
+		public String toHeaderString() {
+			StringBuilder b = new StringBuilder();
+			for (TrackedDouble value : values) {
+				b.append(value.toHeaderString());
+			}
+			return b.toString();
 		}
 
 		@Override

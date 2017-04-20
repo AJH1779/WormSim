@@ -11,15 +11,15 @@
 # Specifies the number of threads to use. By default this will be the maximum
 # but this may be explicitely stated as so:
 # WARNING: Doesn't actually work ATM, has to be specified numerically.
-# thread_no = MAX_THREADS
+thread_no = 1
 
 # Specifies the number of walkers to use.
 walker_no = 4
 
 # The number of iterations to perform before recording data.
-burn_in_iteration_no = 1
+burn_in_iteration_no = 5
 # The number of iterations to perform recording data (following the burn-in).
-recording_iteration_no = 200
+recording_iteration_no = 5
 # The number of assay iterations to use for estimating the survival function.
 # TODO: Improve this.
 assay_iteration_no = 100
@@ -28,7 +28,7 @@ assay_iteration_no = 100
 # the program fails.
 checkpoint_no = 500
 # The number of iterations to wait between recording iterations.
-record_freq_no = 0
+record_freq_no = 1
 
 # Detailed data flag creates an out.dat which contains a significant amount of
 # information regarding the simulation process. Note this may be quite large and

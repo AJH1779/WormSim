@@ -16,10 +16,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,31 +34,6 @@ public class LaunchFromFileMain {
 					.getName());
 
 	/**
-	 * Outputs the help dialogue to the command line which outlines all of the
-	 * commands, their arguments, and what they do. This is an output of the
-	 * program header followed by the help text defined in header.txt and help.txt
-	 * respectively.
-	 *
-	 * @see header.txt for the header text.
-	 * @see help.txt for the full help text.
-	 *
-	 * @since 0.0.1
-	 */
-	@SuppressWarnings("UseOfSystemOutOrSystemErr")
-	public static void help() {
-		// TODO: Move these scanner outputs to a more consistent environment.
-		// TODO: Move the files to their own package.
-		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
-						"/com/wormsim/header.txt")).useDelimiter("\\Z").next()
-						.replace("{authors}", Utils.AUTHORS_AS_STRING)
-						.replace("{version}", Utils.VERSION)
-						.replace("{reference}", Utils.REFERENCE));
-		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
-						"/com/wormsim/help.txt")).useDelimiter("\\Z").next()
-						.replace("{out.txt}", Simulation.OUT_TXT));
-	}
-
-	/**
 	 * Called when the program is launched and processes through the command line
 	 * arguments. The program stops running if one of the argument commands are
 	 * for the help text.
@@ -75,36 +46,15 @@ public class LaunchFromFileMain {
 	 */
 	public static void main(String[] args)
 					throws IllegalArgumentException {
-		// Convert the arguments into command lists
-		HashMap<String, List<String>> data = new HashMap<>(args.length);
-		String current_cmd = null;
-		for (String arg : args) {
-			if (arg.startsWith("-")) {
-				current_cmd = arg;
-				if (data.putIfAbsent(arg, new ArrayList<>(2)) != null) {
-					throw new IllegalArgumentException("Repeated Argument: " + arg);
-				}
-			} else if (current_cmd != null) {
-				data.get(current_cmd).add(arg);
-			} else {
-				throw new IllegalArgumentException("First Parameter must be Argument: "
-								+ arg);
-			}
-		}
-		// Check if any of the commands are something to act upon right now, like help.
-		// WARNING: Hard Coded Parameters.
-		if (data.containsKey("-h") || data.containsKey("--help")) {
-			// Print out the help and then terminate, although the other arguments should
-			// also be checked to see if they are relevant.
-			help();
-			System.exit(0); // Generally not recommended, but should be fine here.
-			// TODO: Detailed information as per argument for help?
-		}
-		SimulationCommands cmds = new SimulationCommands(data);
-
+		SimulationCommands cmds = Utils.readCommandLine(args);
+		SimulationOptions ops = new SimulationOptions(cmds);
 		try {
-			// TODO: Switch to SimulationOptions2.
-			SimulationOptions ops = new SimulationOptions(cmds);
+			ops.readInput();
+			if (ops.isMissingParameters()) {
+				String msg = "Missing parameters: " + ops.getMissingParametersList();
+				LOG.log(Level.SEVERE, msg);
+				throw new IOException(msg);
+			}
 			new Simulation(ops).run();
 		} catch (FileNotFoundException ex) {
 			// TODO: An output for the command line that isn't scary looking, it
@@ -132,11 +82,13 @@ public class LaunchFromFileMain {
 				}
 			}
 		} catch (IOException ex) {
-			// TODO: Logger should be better used here or not used at all.
-			// TODO: What is the problem and how is it fixed?
-			LOG.log(Level.SEVERE, null, ex);
-			// TODO: Exit Error Codes?
+
 			System.exit(-1);
 		}
+		// TODO: Logger should be better used here or not used at all.
+		// TODO: What is the problem and how is it fixed?
+		// TODO: Exit Error Codes?
+
 	}
+
 }

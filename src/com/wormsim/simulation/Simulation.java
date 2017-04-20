@@ -5,8 +5,9 @@
  */
 package com.wormsim.simulation;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import com.wormsim.LaunchFromFileMain;
-import com.wormsim.data.SimulationConditions;
 import com.wormsim.data.SimulationOptions;
 import com.wormsim.utils.Utils;
 import java.io.BufferedOutputStream;
@@ -55,16 +56,16 @@ public class Simulation implements Runnable {
 	 *
 	 * @param ops The options to run with
 	 */
-	public Simulation(SimulationOptions ops) {
+	public Simulation(@NotNull SimulationOptions ops) {
 		this.options = ops;
-		this.threads = new SimulationThread[options.getThreadNumber()];
-		this.walkers = new ArrayList<>((options.getWalkerNumber() * 11) / 10);
-		this.rng = new Random(ops.getRandomSeed());
+		this.threads = new SimulationThread[options.thread_no.get()];
+		this.walkers = new ArrayList<>((options.walker_no.get() * 11) / 10);
+		this.rng = new Random(ops.seed.get());
 
-		this.out_file = new File(ops.getDirectory(), OUT_TXT);
-		this.data_file = new File(ops.getDirectory(), DATA_DAT);
-		if (this.data_file.exists() && ops.getRecordDetailedData() && !ops
-						.getForcedRun()) {
+		this.out_file = new File(ops.directory, OUT_TXT);
+		this.data_file = new File(ops.directory, DATA_DAT);
+		if (this.data_file.exists() && ops.detailed_data.get() && !ops.forced_run
+						.get()) {
 			LOG.log(Level.SEVERE,
 							"Warning: The data.dat file already exists in the target "
 							+ "directory. Delete or move it to run the program. (Located at "
@@ -74,7 +75,7 @@ public class Simulation implements Runnable {
 		} else {
 			this.data_file.delete();
 		}
-		if (this.out_file.exists() && !ops.getForcedRun()) {
+		if (this.out_file.exists() && !ops.forced_run.get()) {
 			LOG.log(Level.SEVERE,
 							"Warning: The " + OUT_TXT
 							+ " file already exists in the target directory. Delete or move "
@@ -83,22 +84,30 @@ public class Simulation implements Runnable {
 			throw new RuntimeException(OUT_TXT + " file already exists!");
 		}
 	}
+	@NotNull
 	private final File data_file;
-	private volatile boolean isrunning;
-	private int iteration = 0;
+	private int iteration;
+	@NotNull
 	private final LinkedBlockingDeque<Walker> iteration_walkers
 					= new LinkedBlockingDeque<>();
-	private final SimulationOptions options;
+	@NotNull
 	private final File out_file;
+	@NotNull
 	private final Random rng;
+	private volatile boolean running;
+	@Nullable
 	private volatile Thread thread;
+	@NotNull
 	private final SimulationThread[] threads;
+	@NotNull
 	private final ArrayList<Walker> walkers;
+	@NotNull
+	public final SimulationOptions options;
 
 	private void checkpoint() {
-		File checkpoint_file = new File(options.getDirectory(), "checkpoint"
-						+ ((iteration - options.getBurnInNumber()) / options
-						.getCheckpointNumber()) + ".dat");
+		File checkpoint_file = new File(options.directory, "checkpoint"
+						+ ((iteration - options.burn_in_no.get()) / options.checkpoint_no
+						.get()) + ".dat");
 
 		// Output to the other file
 		try (ObjectOutputStream out = new ObjectOutputStream(
@@ -112,7 +121,7 @@ public class Simulation implements Runnable {
 		} catch (IOException ex) {
 			// TODO: Proper Error checking and control.
 			LOG.log(Level.SEVERE, null, ex);
-			isrunning = false;
+			setRunning(false);
 		}
 
 		// Write the output here for the different files that are important
@@ -157,7 +166,8 @@ public class Simulation implements Runnable {
 	 * @return If the iteration is a checkpoint
 	 */
 	private boolean reachedCheckpoint() {
-		return iteration % options.getCheckpointNumber() == 0;
+		return options.checkpoint_no.get() > 0 && iteration % options.checkpoint_no
+						.get() == 0;
 	}
 
 	/**
@@ -166,7 +176,7 @@ public class Simulation implements Runnable {
 	 * @return If the simulation has reached the end.
 	 */
 	private boolean reachedEnd() {
-		return iteration > options.getTotalNumber();
+		return iteration >= (options.burn_in_no.get() + options.record_no.get());
 	}
 
 	/**
@@ -175,8 +185,8 @@ public class Simulation implements Runnable {
 	 * @return If the iteration is a recording iteration
 	 */
 	private boolean reachedRecord() {
-		return iteration > options.getBurnInNumber() && (iteration - options
-						.getBurnInNumber()) % options.getRecordingFrequencyNumber() == 0;
+		return iteration > options.burn_in_no.get() && (iteration
+						- options.burn_in_no.get()) % options.record_freq_no.get() == 0;
 	}
 
 	private void record()
@@ -186,13 +196,13 @@ public class Simulation implements Runnable {
 		try (BufferedWriter out
 						= new BufferedWriter(new FileWriter(data_file, data_file.exists()))) {
 			// Records the current state of the tracked values.
-			for (Walker w : walkers) {
-				w.writeToWriter(out);
+			for (Walker walker : walkers) {
+				out.write(walker.toString());
 			}
 			out.newLine();
 		} catch (IOException ex) {
 			LOG.log(Level.SEVERE, null, ex);
-			isrunning = false;
+			setRunning(false);
 		}
 	}
 
@@ -203,7 +213,7 @@ public class Simulation implements Runnable {
 	 */
 	private void reset()
 					throws IOException {
-		if (out_file.exists() && !options.getForcedRun()) {
+		if (out_file.exists() && !options.forced_run.get()) {
 			throw new IOException(
 							"The file \"" + OUT_TXT
 							+ "\" already exists and would be overwritten by "
@@ -211,14 +221,15 @@ public class Simulation implements Runnable {
 		}
 
 		walkers.clear();
-		for (int i = 0; i < options.getWalkerNumber(); i++) {
-			walkers.add(new Walker(rng.nextLong(), options.getZoo().create(options
-							.getPheromoneNumber())));
+		for (int i = 0; i < options.walker_no.get(); i++) {
+			walkers.add(new Walker(rng.nextLong(), options.animal_zoo.get().create(
+							options.pheromone_no.get())));
 		}
 		for (int i = 0; i < threads.length; i++) {
 			threads[i] = new SimulationThread(this, iteration_walkers);
 			threads[i].start();
 		}
+		iteration = 0;
 
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(out_file))) {
 			out.write(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
@@ -237,7 +248,7 @@ public class Simulation implements Runnable {
 							"# The following may be used as the input.txt file for repeating this simulation.");
 			out.newLine();
 			out.newLine();
-			this.options.write(out);
+			out.write(options.toString());
 			out.write(
 							"================================================================================");
 			out.newLine();
@@ -250,24 +261,6 @@ public class Simulation implements Runnable {
 	}
 
 	/**
-	 * Returns the initial conditions of this simulation.
-	 *
-	 * @return the initial conditions
-	 */
-	public SimulationConditions getInitialConditions() {
-		return options.getInitialConditions();
-	}
-
-	/**
-	 * Returns the options of this simulation.
-	 *
-	 * @return the options
-	 */
-	public SimulationOptions getOptions() {
-		return options;
-	}
-
-	/**
 	 * Returns true if the simulation is currently running. Note that this may be
 	 * slightly problematic in the case of a RuntimeException and should be
 	 * altered.
@@ -275,7 +268,7 @@ public class Simulation implements Runnable {
 	 * @return true if the thread is running.
 	 */
 	public boolean isRunning() {
-		return isrunning && thread.isAlive();
+		return running && thread != null && thread.isAlive();
 	}
 
 	// TODO: Include a method of halting the program by using isrunning.
@@ -286,41 +279,46 @@ public class Simulation implements Runnable {
 	public void run() {
 		try {
 			thread = Thread.currentThread();
-			isrunning = true;
+			setRunning(true);
 			reset();
 			// TODO: Is not thread safe.
-			while (isrunning) {
-				iteration++;
+			while (isRunning()) {
+				// TODO: Wait for empty?
 				if (iteration_walkers.isEmpty()) {
+					iteration++;
 					if (reachedRecord()) {
 						record();
 					}
 					if (reachedCheckpoint()) {
 						// TODO: Temporarily does nothing.
 						// checkpoint();
+						System.out.println("CHECKPOINT");
 					}
 					if (reachedEnd()) {
 						end();
-						isrunning = false;
+						setRunning(false);
 					} else {
 						iteration_walkers.addAll(walkers);
 					}
 				}
-				try {
-					Thread.sleep(100);
-					// TODO: Place a limited here, but one that doesn't cause an impact on efficiency by imposing strange units on time.
-				} catch (InterruptedException ex) {
-				}
-				for (SimulationThread t : threads) {
-					if (!t.isAlive()) {
-						isrunning = false;
-					}
-				}
+				// TODO: Handling the ingoings and outgoings of the threads.
+//				for (SimulationThread t : threads) {
+//					if (!t.isAlive()) {
+//						isrunning = false;
+//					}
+//				}
 			}
 		} catch (IOException ex) {
 			LOG.log(Level.SEVERE, "Fatal Unexpected Exception Thrown: {0}", ex);
 		} finally {
-			isrunning = false;
+			setRunning(false);
 		}
+	}
+
+	/**
+	 * @param running the running to set
+	 */
+	public void setRunning(boolean running) {
+		this.running = running;
 	}
 }

@@ -5,10 +5,11 @@
  */
 package com.wormsim.simulation;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import com.wormsim.animals.AnimalZoo;
+import com.wormsim.data.GroupDistribution;
 import com.wormsim.data.TrackedValue.TrackedDouble;
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -36,7 +37,7 @@ public class Walker implements Serializable {
 	 * @param seed The walker seed
 	 * @param zoo  The animal zoo
 	 */
-	public Walker(long seed, AnimalZoo zoo) {
+	public Walker(long seed, @NotNull AnimalZoo zoo) {
 		this(JDKRandomGenerator.class, seed, zoo);
 	}
 
@@ -53,7 +54,9 @@ public class Walker implements Serializable {
 	 *                                  empty argument constructor or the
 	 *                                  constructor is illegal to access.
 	 */
-	public Walker(Class<? extends RandomGenerator> cls, long seed, AnimalZoo zoo)
+	public Walker(@NotNull Class<? extends RandomGenerator> cls,
+								long seed,
+								@NotNull AnimalZoo zoo)
 					throws IllegalArgumentException {
 		try {
 			if (!Serializable.class.isAssignableFrom(cls)) {
@@ -77,7 +80,9 @@ public class Walker implements Serializable {
 	 * @param seed The initial seed number (unused but important for recording).
 	 * @param zoo  The zoo to use.
 	 */
-	protected Walker(RandomGenerator rng, long seed, AnimalZoo zoo) {
+	protected Walker(@NotNull RandomGenerator rng,
+									 long seed,
+									 @NotNull AnimalZoo zoo) {
 		this.zoo = zoo;
 		this.rng = rng;
 		this.seed = seed;
@@ -85,11 +90,17 @@ public class Walker implements Serializable {
 	private double current_fitness = 0.0;
 	private boolean initialised = false;
 	private double prev_fitness = 0.0;
-	private final RandomGenerator rng;
+	@NotNull
 	private final HashMap<String, TrackedDouble> scores = new HashMap<>(16);
 	private final long seed;
-	private transient SimulationThread thread;
-	private final AnimalZoo zoo;
+	@Nullable
+	public transient GroupDistribution init_group_dists;
+	@NotNull
+	public final RandomGenerator rng;
+	@Nullable
+	public transient SimulationThread thread;
+	@NotNull
+	public final AnimalZoo zoo;
 
 	/**
 	 * Performs a metropolis-hastings check.
@@ -109,55 +120,11 @@ public class Walker implements Serializable {
 	}
 
 	/**
-	 * Called when this walker is no longer being propagated by the thread.
-	 */
-	public void dropThread() {
-		thread = null;
-	}
-
-	/**
 	 * Alters the current configuration.
 	 */
 	public void evolve() {
 		// TODO: Evolving other characteristics?
 		zoo.evolve(rng);
-	}
-
-	/**
-	 * Returns the random number generator for this walker.
-	 *
-	 * @return The random number generator
-	 */
-	public RandomGenerator getRNG() {
-		return rng;
-	}
-
-	/**
-	 * Returns the seed used for this walker.
-	 *
-	 * @return The seed.
-	 */
-	public long getSeed() {
-		return seed;
-	}
-
-	/**
-	 * Returns the zoo that this walker is using.
-	 *
-	 * @return
-	 */
-	public AnimalZoo getZoo() {
-		return zoo;
-	}
-
-	/**
-	 * Sets the thread used by this walker to the provided object. Should only be
-	 * called by the thread being given.
-	 *
-	 * @param thread The thread walking this walker.
-	 */
-	public void giveThread(SimulationThread thread) {
-		this.thread = thread;
 	}
 
 	public void initialise() {
@@ -169,22 +136,16 @@ public class Walker implements Serializable {
 		return this.initialised;
 	}
 
-	/**
-	 * Writes the state of this walker out to the provided write as a
-	 * human-readable format.
-	 *
-	 * @param out The writer.
-	 *
-	 * @throws IOException If an exception is thrown whilst writing.
-	 */
-	public void writeToWriter(BufferedWriter out)
-					throws IOException {
-		zoo.writeToWriter(out);
-		out.write(Double.toString(current_fitness));
-		out.newLine();
+	@Override
+	@NotNull
+	public String toString() {
+		StringBuilder b = new StringBuilder(zoo.toCurrentValueString());
+		b.append(current_fitness);
+		b.append(System.lineSeparator());
+		return b.toString();
 	}
 
-	void recordScores(HashMap<String, Double> p_map, double p_inv) {
+	void recordScores(@NotNull HashMap<String, Double> p_map, double p_inv) {
 		p_map.forEach((k, v) -> {
 			if (scores.containsKey(k)) {
 				scores.get(k).set(v * p_inv);

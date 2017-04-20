@@ -5,7 +5,10 @@
  */
 package com.wormsim.simulation;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import com.wormsim.animals.AnimalGroup;
+import com.wormsim.data.SimulationConditions;
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -31,25 +34,47 @@ public class SimulationThread implements Runnable {
 	 * @param sim     The simulation
 	 * @param walkers The walker deque the thread will walk.
 	 */
-	SimulationThread(Simulation sim, LinkedBlockingDeque<Walker> walkers) {
+	SimulationThread(@NotNull Simulation sim,
+									 @NotNull LinkedBlockingDeque<Walker> walkers) {
+		// TODO: Sort constructors better.
+		this.scoring_interface = new ScoringInterface(this);
+		this.scores = new HashMap<>(16);
+		this.sampling_interface = new SamplingInterface(
+						this);
+		this.groups = new TreeSet<>();
+		this.dev_interface = new DevelopmentInterface(
+						this);
+		this.con_interface = new ConsumeInterface(this);
+		iter_max = sim.options.assay_iteration_no.get();
+		init_conditions = sim.options.initial_conditions.get();
 		this.sim = sim;
 		this.walkers = walkers;
 
-		this.pheromones = new double[sim.getOptions().getPheromoneNumber()];
+		this.pheromones = new double[sim.options.pheromone_no.get()];
 	}
-	private final ConsumeInterface con_interface = new ConsumeInterface(this);
-	private final DevelopmentInterface dev_interface = new DevelopmentInterface(
-					this);
+	@NotNull
+	private final ConsumeInterface con_interface;
+	@NotNull
+	private final DevelopmentInterface dev_interface;
 	private double food;
-	private final TreeSet<AnimalGroup> groups = new TreeSet<>();
+	@NotNull
+	private final TreeSet<AnimalGroup> groups;
+	@NotNull
+	private final SimulationConditions init_conditions;
+	private final int iter_max;
 	private final double[] pheromones;
-	private final SamplingInterface sampling_interface = new SamplingInterface(
-					this);
-	private final HashMap<String, Double> scores = new HashMap<>(16);
-	private final ScoringInterface scoring_interface = new ScoringInterface(this);
+	@NotNull
+	private final SamplingInterface sampling_interface;
+	@NotNull
+	private final HashMap<String, Double> scores;
+	@NotNull
+	private final ScoringInterface scoring_interface;
+	@NotNull
 	private final Simulation sim;
+	@Nullable
 	private volatile Thread thread;
 	private double time;
+	@NotNull
 	private final LinkedBlockingDeque<Walker> walkers;
 
 	/**
@@ -57,40 +82,15 @@ public class SimulationThread implements Runnable {
 	 * conditions.
 	 */
 	private void reset(Walker walker) {
-		food = sim.getInitialConditions().sampleFoodDistribution();
+		food = init_conditions.food_dist.sample();
 		for (int i = 0; i < pheromones.length; i++) {
-			pheromones[i] = sim.getInitialConditions().samplePheromoneDistribution(i);
+			pheromones[i] = init_conditions.pheromone_dists.get(i).sample();
 		}
 		groups.clear();
-		groups.addAll(sim.getInitialConditions().sampleGroups(walker.getZoo()));
-	}
-
-	public boolean isAlive() {
-		return thread.isAlive();
-	}
-
-	@Override
-	public void run() {
-		while (sim.isRunning()) {
-			try {
-				// WARNING: Arbitrary timeout, should this be adjusted?
-				Walker walker = walkers.poll(1000, TimeUnit.MILLISECONDS);
-				if (walker != null) {
-					if (!walker.isInitialised()) {
-						walker.initialise();
-					}
-					walker.giveThread(this);
-					walker.evolve();
-					run(walker);
-					walker.check();
-					walker.dropThread();
-				}
-			} catch (InterruptedException ex) {
-				// Requires a check to see whether it should be ending the while loop.
-				// Could instead try using the older threading thing from my prior
-				// project. SynchroCore!
-			}
+		if (walker.init_group_dists == null) {
+			walker.init_group_dists = init_conditions.getGroupDistribution(walker.zoo);
 		}
+		walker.init_group_dists.sample(groups);
 	}
 
 	/**
@@ -99,10 +99,10 @@ public class SimulationThread implements Runnable {
 	 *
 	 * @param walker The walker to run with.
 	 */
-	public void run(Walker walker) {
+	private void run(@NotNull Walker walker) {
 		thread = Thread.currentThread();
 		scores.clear();
-		for (int i = 0; i < sim.getOptions().getAssayIterationNumber(); i++) {
+		for (int i = 0; i < iter_max; i++) {
 			reset(walker);
 			time = 0.0;
 			while (food > 0.0 && !groups.isEmpty()) {
@@ -120,22 +120,54 @@ public class SimulationThread implements Runnable {
 				}
 
 				groups.remove(group);
-				group.develop(dev_interface, walker.getRNG());
+				group.develop(dev_interface, walker.rng);
 			}
 			// Scoring with the remaining groups.
 			groups.forEach((g) -> {
 				g.score(scoring_interface);
 			});
 		}
-		double inv_num = 1.0 / sim.getOptions().getAssayIterationNumber();
+		double inv_num = 1.0 / iter_max;
 		walker.recordScores(scores, inv_num);
+	}
+
+	public boolean isAlive() {
+		return thread != null && thread.isAlive();
+	}
+
+	@Override
+	public void run() {
+		try {
+			while (sim.isRunning()) {
+				try {
+					// WARNING: Arbitrary timeout, should this be adjusted?
+					Walker walker = walkers.poll(1000, TimeUnit.MILLISECONDS);
+					if (walker != null) {
+						if (!walker.isInitialised()) {
+							walker.initialise();
+						}
+						walker.thread = this;
+						walker.evolve();
+						run(walker);
+						walker.check();
+						walker.thread = null;
+					}
+				} catch (InterruptedException ex) {
+					// Requires a check to see whether it should be ending the while loop.
+					// Could instead try using the older threading thing from my prior
+					// project. SynchroCore!
+				}
+			}
+		} finally {
+			this.sim.setRunning(false);
+		}
 	}
 
 	/**
 	 * Starts the thread. The thread should be started this way to have consistent
 	 * settings, but it does not necessarily matter.
 	 */
-	void start() {
+	public void start() {
 		new Thread(this).start();
 	}
 
@@ -147,9 +179,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class ConsumeInterface {
 
-		private ConsumeInterface(SimulationThread thread) {
+		private ConsumeInterface(@NotNull SimulationThread thread) {
 			this.thread = thread;
 		}
+		@NotNull
 		private final SimulationThread thread;
 
 		/**
@@ -192,9 +225,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class DevelopmentInterface {
 
-		private DevelopmentInterface(SimulationThread thread) {
+		private DevelopmentInterface(@NotNull SimulationThread thread) {
 			this.thread = thread;
 		}
+		@NotNull
 		private final SimulationThread thread;
 
 		/**
@@ -205,8 +239,8 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if the group was added.
 		 */
-		public boolean addGroup(AnimalGroup ag) {
-			if (ag == null || ag.getCount() < 1) {
+		public boolean addGroup(@NotNull AnimalGroup ag) {
+			if (ag.getCount() < 1) {
 				return false;
 			}
 			return thread.groups.add(ag);
@@ -220,7 +254,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if added (always true)
 		 */
-		public boolean addScore(String ref, double del) {
+		public boolean addScore(@NotNull String ref, double del) {
 			if (thread.scores.containsKey(ref)) {
 				thread.scores.put(ref, thread.scores.get(ref) + del);
 			} else {
@@ -269,6 +303,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The sampling interface.
 		 */
+		@NotNull
 		public SamplingInterface getSamplingInterface() {
 			return thread.sampling_interface;
 		}
@@ -279,6 +314,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The scoring interface
 		 */
+		@NotNull
 		public ScoringInterface getScoringInterface() {
 			return thread.scoring_interface;
 		}
@@ -302,9 +338,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class SamplingInterface {
 
-		private SamplingInterface(SimulationThread thread) {
+		private SamplingInterface(@NotNull SimulationThread thread) {
 			this.thread = thread;
 		}
+		@NotNull
 		private final SimulationThread thread;
 
 		/**
@@ -357,9 +394,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class ScoringInterface {
 
-		private ScoringInterface(SimulationThread thread) {
+		private ScoringInterface(@NotNull SimulationThread thread) {
 			this.thread = thread;
 		}
+		@NotNull
 		private final SimulationThread thread;
 
 		/**
@@ -370,7 +408,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if added (always true)
 		 */
-		public boolean addScore(String ref, double del) {
+		public boolean addScore(@NotNull String ref, double del) {
 			if (thread.scores.containsKey(ref)) {
 				thread.scores.put(ref, thread.scores.get(ref) + del);
 			} else {
@@ -419,6 +457,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The sampling interface.
 		 */
+		@NotNull
 		public SamplingInterface getSamplingInterface() {
 			return thread.sampling_interface;
 		}

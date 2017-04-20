@@ -34,13 +34,10 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_options
 	 * @param p_name        The name of this setting.
 	 * @param p_constructor
-	 *
-	 * @throws java.io.IOException Never thrown.
 	 */
-	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
 																 @NotNull String p_name,
-																 @NotNull Constructor<T> p_constructor)
-					throws IOException {
+																 @NotNull Constructor<T> p_constructor) {
 		this(p_options, p_name, p_constructor, null, null);
 	}
 
@@ -52,14 +49,11 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_name        The name of this setting.
 	 * @param p_constructor
 	 * @param p_value       The value of this setting.
-	 *
-	 * @throws IOException Never thrown.
 	 */
-	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
 																 @NotNull String p_name,
 																 @NotNull Constructor<T> p_constructor,
-																 @Nullable T p_value)
-					throws IOException {
+																 @Nullable T p_value) {
 		this(p_options, p_name, p_constructor, p_value, null);
 	}
 
@@ -69,14 +63,11 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_name
 	 * @param p_constructor
 	 * @param p_condition
-	 *
-	 * @throws IOException Never thrown.
 	 */
-	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
 																 @NotNull String p_name,
 																 @NotNull Constructor<T> p_constructor,
-																 @Nullable Predicate<T> p_condition)
-					throws IOException {
+																 @Nullable Predicate<T> p_condition) {
 		this(p_options, p_name, p_constructor, null, p_condition);
 	}
 
@@ -87,26 +78,26 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_constructor
 	 * @param p_value
 	 * @param p_condition
-	 *
-	 * @throws IOException Thrown if the value does not fulfil the condition.
 	 */
 	@SuppressWarnings("LeakingThisInConstructor")
-	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
 																 @NotNull String p_name,
 																 @NotNull Constructor<T> p_constructor,
 																 @Nullable T p_value,
-																 @Nullable Predicate<T> p_condition)
-					throws IOException {
+																 @Nullable Predicate<T> p_condition) {
 		if (p_condition == null || p_value == null || p_condition.test(p_value)) {
 			this.value = p_value;
 		} else {
-			throw new IOException("Value is Invalid under the Condition.");
+			throw new AssertionError("Value is Invalid under the Condition.");
 		}
 		this.name = p_name;
 		this.condition = p_condition;
 		this.constructor = p_constructor;
 
-		p_options.settings.put(name, this);
+		if (p_options.settings.putIfAbsent(name, this) != null) {
+			throw new IllegalArgumentException(
+							"Cannot create two entries with the same name (" + p_name + ")!");
+		}
 	}
 	private final Predicate<T> condition;
 	private final Constructor<T> constructor;
@@ -118,8 +109,9 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @return
 	 */
-	@Nullable
+	@NotNull
 	public T get() {
+		assert value != null;
 		return value;
 	}
 
@@ -128,6 +120,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @return The key it should take.
 	 */
+	@NotNull
 	public String getName() {
 		return name;
 	}
@@ -168,13 +161,36 @@ public final class SimulationOptionSetting<T> {
 		}
 	}
 
-	public void setFromString(String str)
+	/**
+	 * Sets this value to the one described by the string.
+	 *
+	 * @param str
+	 *
+	 * @throws IOException
+	 */
+	public void setFromString(@NotNull String str)
 					throws IOException {
-		this.value = constructor.read(str);
+		set(constructor.read(str));
 	}
 
+	/**
+	 * A functional interface for generating objects represented by strings.
+	 *
+	 * @param <T> The type of the object.
+	 */
+	@FunctionalInterface
 	public static interface Constructor<T> {
-		public T read(String str)
+		/**
+		 * Provides an object which is represented by the string given.
+		 *
+		 * @param str The string describing the object
+		 *
+		 * @return The object given by the string.
+		 *
+		 * @throws IOException If the string is malformed.
+		 */
+		@NotNull
+		public T read(@NotNull String str)
 						throws IOException;
 	}
 }

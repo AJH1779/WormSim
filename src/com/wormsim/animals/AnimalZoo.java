@@ -5,6 +5,7 @@
  */
 package com.wormsim.animals;
 
+import com.sun.istack.internal.NotNull;
 import com.wormsim.data.TrackedValue;
 import com.wormsim.utils.Context;
 import com.wormsim.utils.StringFormula;
@@ -28,37 +29,28 @@ import org.apache.commons.math3.random.RandomGenerator;
 public class AnimalZoo implements TrackedValue {
 	private static final Logger LOG = Logger.getLogger(AnimalZoo.class.getName());
 	private static final long serialVersionUID = 1L;
-//	public static final Pattern LINE_PATTERN = Pattern.compile(
-//					"(strain[^\\v\\{]*\\{[.\\s\\S]*?(\\v\\t\\})|((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\}))");
-//	public static final Pattern STAGE_PATTERN = Pattern.compile(
-//					"\\v\\s*?stage\\s+.*?(\\s+?\\d+(.\\d+)?)+");
-//	public static final Pattern STRAIN_KEY_PATTERN = Pattern.compile(
-//					"(?<=strain)\\s+[^\\{]*");
-//	public static final Pattern STRAIN_PATTERN = Pattern.compile(
-//					"strain[^\\v\\{]*\\{[.\\s\\S]*?(\\v\\t\\})");
-//	public static final Pattern VALIDITY_PATTERN = Pattern.compile(
-//					"\\s*\\{[\\s\\S]*\\}\\s*");
 
-	public static AnimalZoo read(String str)
+	@NotNull
+	public static AnimalZoo read(String p_str)
 					throws IOException {
 		throw new UnsupportedOperationException("NYI");
-//		if (VALIDITY_PATTERN.matcher(str).matches()) {
+//		if (Utils.VALIDITY_PATTERN.matcher(str).matches()) {
 //			AnimalZoo.Builder zoo = new AnimalZoo.Builder();
 //
 //			BasicContext context = Context.GLOBAL_CONTEXT.push();
 //
 //			// TODO: Ensure the {} are cropped off, currently this allows illegal formatting.
-//			Matcher m = LINE_PATTERN.matcher(str);
+//			Matcher m = Utils.LINE_PATTERN.matcher(str);
 //			while (m.find()) {
 //				String mat = m.group();
-//				if (STRAIN_PATTERN.matcher(mat).matches()) {
+//				if (Utils.STRAIN_PATTERN.matcher(mat).matches()) {
 //					// Add the strain in.
 //					// Get the key
-//					Matcher m_skey = STRAIN_KEY_PATTERN.matcher(mat);
+//					Matcher m_skey = Utils.STRAIN_KEY_PATTERN.matcher(mat);
 //					assert m_skey.find();
 //					String strain_key = m_skey.group().trim();
 //					zoo.addAnimalStrain(strain_key);
-//					Matcher m_stage = STAGE_PATTERN.matcher(mat);
+//					Matcher m_stage = Utils.STAGE_PATTERN.matcher(mat);
 //					while (m_stage.find()) {
 //						String stagestr = m_stage.group();
 //						zoo.addAnimalStage(strain_key, stage_name);
@@ -109,17 +101,17 @@ public class AnimalZoo implements TrackedValue {
 	 * for the same animal stage has not already been added. Returns true if
 	 * added, false otherwise.
 	 *
-	 * @param dev The development to add.
+	 * @param p_dev The development to add.
 	 *
 	 * @return True if added, false otherwise.
 	 */
-	public boolean addAnimalDevelopment(AnimalDevelopment dev) {
-		boolean flag = dev.getInvolvedStages().allMatch((s) -> s == null
+	public boolean addAnimalDevelopment(@NotNull AnimalDevelopment p_dev) {
+		boolean flag = p_dev.getInvolvedStages().allMatch((s) -> s == null
 						|| this.stages.containsValue(s)) && this.developments.putIfAbsent(
-						dev.getPrevStage(), dev) == null;
+						p_dev.getPrevStage(), p_dev) == null;
 		if (flag) {
-			dev.getPrevStage().setAnimalDevelopment(dev);
-			dev.getTrackedValues().forEach((v) -> tracked_values.add(v));
+			p_dev.getPrevStage().setAnimalDevelopment(p_dev);
+			p_dev.getTrackedValues().forEach((v) -> tracked_values.add(v));
 		} else {
 			throw new AssertionError("Temporary Error, needs better handling.");
 		}
@@ -137,7 +129,7 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @see AnimalStage#getFullName() For the key name
 	 */
-	public boolean addAnimalStage(AnimalStage p_stage) {
+	public boolean addAnimalStage(@NotNull AnimalStage p_stage) {
 		boolean flag = this.strains.containsValue(p_stage.getStrain())
 						&& this.stages
 										.putIfAbsent(p_stage.getFullName(), p_stage) == null;
@@ -156,11 +148,12 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return True if added, false otherwise.
 	 */
-	public boolean addAnimalStrain(AnimalStrain p_strain) {
+	public boolean addAnimalStrain(@NotNull AnimalStrain p_strain) {
 		return this.strains.putIfAbsent(p_strain.getName(), p_strain) == null;
 	}
 
 	@Override
+	@NotNull
 	public AnimalZoo.Immutable copy() {
 		return create(this.pheromone_count);
 	}
@@ -174,6 +167,7 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return A new animal zoo.
 	 */
+	@NotNull
 	public AnimalZoo.Immutable create(int p_pheromone_no) {
 		AnimalZoo.Immutable zoo = new AnimalZoo.Immutable();
 		strains.forEach((k, v) -> {
@@ -194,7 +188,7 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public void evolve(RandomGenerator p_rng) {
+	public void evolve(@NotNull RandomGenerator p_rng) {
 		this.tracked_values.forEach((v) -> v.evolve(p_rng));
 	}
 
@@ -210,7 +204,8 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @see AnimalStage#getFullName() The full name key.
 	 */
-	public AnimalStage getAnimalStage(String p_key) {
+	@NotNull
+	public AnimalStage getAnimalStage(@NotNull String p_key) {
 		return this.stages.get(p_key);
 	}
 
@@ -224,12 +219,13 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return
 	 */
-	public AnimalStrain getAnimalStrain(String p_key) {
+	@NotNull
+	public AnimalStrain getAnimalStrain(@NotNull String p_key) {
 		return this.strains.get(p_key);
 	}
 
 	@Override
-	public void initialise(RandomGenerator p_rng) {
+	public void initialise(@NotNull RandomGenerator p_rng) {
 		this.tracked_values.stream().forEach((v) -> v.initialise(p_rng));
 	}
 
@@ -244,7 +240,7 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public void writeToStream(ObjectOutputStream p_out)
+	public void writeToStream(@NotNull ObjectOutputStream p_out)
 					throws IOException {
 		for (TrackedValue v : tracked_values) {
 			v.writeToStream(p_out);
@@ -252,11 +248,34 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public void writeToWriter(BufferedWriter p_out)
+	public void writeToWriter(@NotNull BufferedWriter p_out)
 					throws IOException {
 		for (TrackedValue v : tracked_values) {
 			v.writeToWriter(p_out);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "ANIMAL ZOO NYI";
+	}
+
+	@Override
+	public String toCurrentValueString() {
+		StringBuilder b = new StringBuilder();
+		tracked_values.forEach((v) -> {
+			b.append(v.toCurrentValueString());
+		});
+		return b.toString();
+	}
+
+	@Override
+	public String toHeaderString() {
+		StringBuilder b = new StringBuilder();
+		tracked_values.forEach((v) -> {
+			b.append(v.toHeaderString());
+		});
+		return b.toString();
 	}
 
 	/**

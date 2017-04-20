@@ -8,6 +8,9 @@ package com.wormsim.utils;
 import java.io.IOException;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 import static org.apache.commons.math3.util.FastMath.exp;
 import static org.apache.commons.math3.util.FastMath.log;
@@ -17,8 +20,52 @@ import static org.apache.commons.math3.util.FastMath.log;
  * @author ah810
  */
 public class Utils {
+	/**
+	 * The array of authors to be cited in the order that they should appear in
+	 * print.
+	 *
+	 * TODO: Codes for joint positions?
+	 *
+	 * @since 0.0.1
+	 */
+	private static final String[] AUTHOR_ARRAY = new String[]{"Arthur Hills", "Mark Viney", "Simon Harvey"};
 
 	private static final Logger LOG = Logger.getLogger(Utils.class.getName());
+	/**
+	 * An immutable list containing the authors of the program in the order that
+	 * they should appear in reference. Currently this is used only for the
+	 * informative output file normally denoted "out.txt".
+	 *
+	 * @since 0.0.1
+	 */
+	public static final List<String> AUTHORS = Collections.unmodifiableList(Arrays.asList(AUTHOR_ARRAY));
+	/**
+	 * A comma delimited list of the authors to be cited in the order that they
+	 * should appear in print. Currently this is used only for the informative
+	 * output file normally denoted "out.txt".
+	 *
+	 * @since 0.0.1
+	 */
+	public static final String AUTHORS_AS_STRING = String.join(", ", AUTHOR_ARRAY);
+	/**
+	 * The literature reference for use of this program. Currently this is used
+	 * only for the informative output file normally denoted "out.txt", but will
+	 * in future contain the program that has to be referenced by anyone who uses
+	 * this program to generate data for their work.
+	 *
+	 * TODO: Apply a reference when it is available.
+	 *
+	 * @since 0.0.1
+	 */
+	public static final String REFERENCE = "null";
+	/**
+	 * The version code of this program.
+	 *
+	 * TODO: Keep Updated.
+	 *
+	 * @since 0.0.1
+	 */
+	public static final String VERSION = "0.0.3";
 
 	/**
 	 *

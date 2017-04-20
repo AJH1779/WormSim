@@ -5,12 +5,10 @@
  */
 package com.wormsim.simulation;
 
-import com.wormsim.Main;
-import static com.wormsim.Main.AUTHORS_AS_STRING;
-import static com.wormsim.Main.REFERENCE;
-import static com.wormsim.Main.VERSION;
+import com.wormsim.LaunchFromFileMain;
 import com.wormsim.data.SimulationConditions;
 import com.wormsim.data.SimulationOptions;
+import com.wormsim.utils.Utils;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -223,11 +221,11 @@ public class Simulation implements Runnable {
 		}
 
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(out_file))) {
-			out.write(new Scanner(Main.class.getResourceAsStream(
+			out.write(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
 							"/com/wormsim/header.txt")).useDelimiter("\\Z").next()
-							.replace("{authors}", AUTHORS_AS_STRING)
-							.replace("{version}", VERSION)
-							.replace("{reference}", REFERENCE));
+							.replace("{authors}", Utils.AUTHORS_AS_STRING)
+							.replace("{version}", Utils.VERSION)
+							.replace("{reference}", Utils.REFERENCE));
 			out.newLine();
 			out.write(
 							"================================================================================");

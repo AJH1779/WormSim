@@ -27,6 +27,8 @@ public class SimulationCommands {
 	 * The format is command for the key including the "-" which denotes it as a
 	 * command followed by a List of whitespace separated arguments.
 	 *
+	 * TODO: Replace Simulation Commands with a SimulationOptions2 style system?
+	 *
 	 * @param cmds The input commands as a map.
 	 *
 	 * @throws IllegalArgumentException If a command or argument was invalid

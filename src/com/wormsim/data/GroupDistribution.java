@@ -125,6 +125,17 @@ public class GroupDistribution {
 		return groups;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		dists.entrySet().forEach((dist) -> {
+			b.append("\t").append(dist.getKey()).append(" ~ ").append(
+							GroupDistribution.integerDistributionToString(dist.getValue()))
+							.append(System.lineSeparator());
+		});
+		return b.toString();
+	}
+
 	public void write(BufferedWriter p_out)
 					throws IOException {
 		for (Entry<String, IntegerDistribution> dist : dists.entrySet()) {

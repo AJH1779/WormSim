@@ -240,4 +240,20 @@ public class SimulationConditions {
 		group_dist.write(out);
 		out.write("}");
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append("{").append(System.lineSeparator());
+		b.append("\tfood ~ ").append(realDistributionToString(food_dist));
+		b.append(System.lineSeparator());
+		for (int i = 0; i < pheromone_dists.length; i++) {
+			b.append("\tpheromone[").append(i).append("] ~ ");
+			b.append(realDistributionToString(food_dist));
+			b.append(System.lineSeparator());
+		}
+		b.append(group_dist.toString());
+		b.append("}");
+		return b.toString();
+	}
 }

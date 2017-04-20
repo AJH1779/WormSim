@@ -5,6 +5,8 @@
  */
 package com.wormsim.data;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import java.io.IOException;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -35,8 +37,9 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws java.io.IOException Never thrown.
 	 */
-	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
-																 Constructor<T> p_constructor)
+	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+																 @NotNull String p_name,
+																 @NotNull Constructor<T> p_constructor)
 					throws IOException {
 		this(p_options, p_name, p_constructor, null, null);
 	}
@@ -52,8 +55,10 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws IOException Never thrown.
 	 */
-	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
-																 Constructor<T> p_constructor, T p_value)
+	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+																 @NotNull String p_name,
+																 @NotNull Constructor<T> p_constructor,
+																 @Nullable T p_value)
 					throws IOException {
 		this(p_options, p_name, p_constructor, p_value, null);
 	}
@@ -63,15 +68,16 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_options
 	 * @param p_name
 	 * @param p_constructor
-	 * @param condition
+	 * @param p_condition
 	 *
 	 * @throws IOException Never thrown.
 	 */
-	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
-																 Constructor<T> p_constructor,
-																 Predicate<T> condition)
+	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+																 @NotNull String p_name,
+																 @NotNull Constructor<T> p_constructor,
+																 @Nullable Predicate<T> p_condition)
 					throws IOException {
-		this(p_options, p_name, p_constructor, null, condition);
+		this(p_options, p_name, p_constructor, null, p_condition);
 	}
 
 	/**
@@ -80,22 +86,24 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_name
 	 * @param p_constructor
 	 * @param p_value
-	 * @param condition
+	 * @param p_condition
 	 *
 	 * @throws IOException Thrown if the value does not fulfil the condition.
 	 */
 	@SuppressWarnings("LeakingThisInConstructor")
-	public SimulationOptionSetting(SimulationOptions2 p_options, String p_name,
-																 Constructor<T> p_constructor, T p_value,
-																 Predicate<T> condition)
+	public SimulationOptionSetting(@NotNull SimulationOptions2 p_options,
+																 @NotNull String p_name,
+																 @NotNull Constructor<T> p_constructor,
+																 @Nullable T p_value,
+																 @Nullable Predicate<T> p_condition)
 					throws IOException {
-		if (condition == null || p_value == null || condition.test(p_value)) {
+		if (p_condition == null || p_value == null || p_condition.test(p_value)) {
 			this.value = p_value;
 		} else {
 			throw new IOException("Value is Invalid under the Condition.");
 		}
 		this.name = p_name;
-		this.condition = condition;
+		this.condition = p_condition;
 		this.constructor = p_constructor;
 
 		p_options.settings.put(name, this);
@@ -106,16 +114,13 @@ public final class SimulationOptionSetting<T> {
 	private T value;
 
 	/**
+	 * Returns the value currently stored for this setting.
 	 *
-	 * @return @throws IOException
+	 * @return
 	 */
-	public T get()
-					throws IOException {
-		if (value != null) {
-			return value;
-		} else {
-			throw new IOException("Null Pointer Exception");
-		}
+	@Nullable
+	public T get() {
+		return value;
 	}
 
 	/**
@@ -144,7 +149,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @return True if it is a valid key for this setting, false otherwise.
 	 */
-	public boolean isName(String p_name) {
+	public boolean isName(@Nullable String p_name) {
 		return name.equalsIgnoreCase(p_name);
 	}
 
@@ -154,9 +159,9 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws IOException
 	 */
-	public void set(T p_value)
+	public void set(@NotNull T p_value)
 					throws IOException {
-		if (condition == null || p_value == null || condition.test(p_value)) {
+		if (condition == null || condition.test(p_value)) {
 			this.value = p_value;
 		} else {
 			throw new IOException("Value is Invalid under the Condition.");

@@ -8,6 +8,7 @@ package com.wormsim;
 import com.wormsim.data.SimulationCommands;
 import com.wormsim.data.SimulationOptions;
 import com.wormsim.simulation.Simulation;
+import com.wormsim.utils.Utils;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,8 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -30,62 +29,13 @@ import java.util.logging.Logger;
  * @author ah810
  * @version 0.0.3
  *
- * @see Main#main(java.lang.String[]) For the details of how to launch this
- * program.
+ * @see LaunchFromFileMain#main(java.lang.String[]) For the details of how to
+ * launch this program.
  */
-public class Main {
-	/**
-	 * The array of authors to be cited in the order that they should appear in
-	 * print.
-	 *
-	 * TODO: Codes for joint positions?
-	 *
-	 * @since 0.0.1
-	 */
-	private static final String[] AUTHOR_ARRAY = new String[]{
-		"Arthur Hills",
-		"Mark Viney",
-		"Simon Harvey"
-	};
+public class LaunchFromFileMain {
 
-	private static final Logger LOG = Logger.getLogger(Main.class.getName());
-
-	/**
-	 * An immutable list containing the authors of the program in the order that
-	 * they should appear in reference. Currently this is used only for the
-	 * informative output file normally denoted "out.txt".
-	 *
-	 * @since 0.0.1
-	 */
-	public static final List<String> AUTHORS = Collections.unmodifiableList(Arrays
-					.asList(AUTHOR_ARRAY));
-	/**
-	 * A comma delimited list of the authors to be cited in the order that they
-	 * should appear in print. Currently this is used only for the informative
-	 * output file normally denoted "out.txt".
-	 *
-	 * @since 0.0.1
-	 */
-	public static final String AUTHORS_AS_STRING = String.join(", ", AUTHOR_ARRAY);
-	/**
-	 * The literature reference for use of this program. Currently this is used
-	 * only for the informative output file normally denoted "out.txt", but will
-	 * in future contain the program that has to be referenced by anyone who uses
-	 * this program to generate data for their work.
-	 *
-	 * TODO: Apply a reference when it is available.
-	 *
-	 * @since 0.0.1
-	 */
-	public static final String REFERENCE = "null";
-	/**
-	 * The version code of this program.
-	 *
-	 * TODO: Keep Updated.
-	 *
-	 * @since 0.0.1
-	 */
-	public static final String VERSION = "0.0.3";
+	private static final Logger LOG = Logger.getLogger(LaunchFromFileMain.class
+					.getName());
 
 	/**
 	 * Outputs the help dialogue to the command line which outlines all of the
@@ -102,12 +52,12 @@ public class Main {
 	public static void help() {
 		// TODO: Move these scanner outputs to a more consistent environment.
 		// TODO: Move the files to their own package.
-		System.out.println(new Scanner(Main.class.getResourceAsStream(
+		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
 						"/com/wormsim/header.txt")).useDelimiter("\\Z").next()
-						.replace("{authors}", AUTHORS_AS_STRING)
-						.replace("{version}", VERSION)
-						.replace("{reference}", REFERENCE));
-		System.out.println(new Scanner(Main.class.getResourceAsStream(
+						.replace("{authors}", Utils.AUTHORS_AS_STRING)
+						.replace("{version}", Utils.VERSION)
+						.replace("{reference}", Utils.REFERENCE));
+		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
 						"/com/wormsim/help.txt")).useDelimiter("\\Z").next()
 						.replace("{out.txt}", Simulation.OUT_TXT));
 	}
@@ -168,7 +118,7 @@ public class Main {
 			} else {
 				// A sloppy write out.
 				// TODO: Replace with a Files.copy or some similar control.
-				try (InputStream in = Main.class.getResourceAsStream(
+				try (InputStream in = LaunchFromFileMain.class.getResourceAsStream(
 								"/com/wormsim/default_input.txt");
 								OutputStream out = new BufferedOutputStream(
 												new FileOutputStream(file))) {

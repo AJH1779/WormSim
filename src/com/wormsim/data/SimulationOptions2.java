@@ -5,17 +5,18 @@
  */
 package com.wormsim.data;
 
+import com.sun.istack.internal.NotNull;
+import com.wormsim.Temporary;
 import com.wormsim.animals.AnimalZoo;
 import com.wormsim.utils.Utils;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -27,8 +28,6 @@ import java.util.stream.Collectors;
  * @version 0.0.1
  */
 public final class SimulationOptions2 implements Serializable {
-	private static final Pattern ARGUMENT_PATTERN = Pattern.compile(
-					"((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\})");
 
 	private static final Logger LOG = Logger.getLogger(SimulationOptions2.class
 					.getName());
@@ -37,6 +36,8 @@ public final class SimulationOptions2 implements Serializable {
 	 * A string denoting the keyword for the animal definitions block.
 	 */
 	public static final String ANIMAL_ZOO = "animal_zoo";
+	public static final Pattern ARGUMENT_PATTERN = Pattern.compile(
+					"((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\})");
 	/**
 	 * A string denoting the keyword for the assay iterations number.
 	 *
@@ -105,19 +106,19 @@ public final class SimulationOptions2 implements Serializable {
 	 * Creates a new set of options using the specified commands and inferring the
 	 * directory as the directory the program was launched within.
 	 *
-	 * @param cmds An object representing the command line arguments.
+	 * @param p_commands An object representing the command line arguments.
 	 *
 	 * @throws java.io.IOException If there is an error reading the "input.txt"
 	 *                             file.
 	 */
-	public SimulationOptions2(SimulationCommands cmds)
+	public SimulationOptions2(@NotNull SimulationCommands p_commands)
 					throws IOException {
 		this.settings = new NoReplaceHashMap<>();
 		// Initialise the variables for quick access.
 		// Additional variables can be created for access through the settings
 		// object, if a hack is being employed or something like that.
 		this.animal_zoo = new SimulationOptionSetting<>(this, ANIMAL_ZOO,
-						AnimalZoo::read);
+						AnimalZoo::read, Temporary.CODED_ANIMAL_ZOO);
 		this.assay_iteration_no = new SimulationOptionSetting<>(this,
 						ASSAY_ITERATION_NO, Utils::readInteger, null, (Integer i) -> i > 0);
 		this.burn_in_no = new SimulationOptionSetting<>(this, BURN_IN_NO,
@@ -148,16 +149,18 @@ public final class SimulationOptions2 implements Serializable {
 		this.walker_no = new SimulationOptionSetting<>(this, WALKER_NO,
 						Utils::readInteger, null, (i) -> i > 0);
 
-		this.directory = cmds.getDirectory();
-		this.input = new File(cmds.getDirectory(), INPUT_TXT);
-		this.cmds = cmds;
+		this.directory = p_commands.getDirectory();
+		this.input = new File(p_commands.getDirectory(), INPUT_TXT);
+		this.cmds = p_commands;
 
-		readData2();
+		readData();
 
 		if (settings.values().stream().noneMatch((v) -> !v.isFulfilled())) {
-			throw new IOException("Missing parameters: " + settings.values().stream()
+			String msg = "Missing parameters: " + settings.values().stream()
 							.filter((v) -> !v.isFulfilled()).map((v) -> v.getName())
-							.collect(Collectors.joining(", ")));
+							.collect(Collectors.joining(", "));
+			LOG.log(Level.SEVERE, msg);
+			throw new IOException(msg);
 		}
 	}
 
@@ -183,7 +186,7 @@ public final class SimulationOptions2 implements Serializable {
 	public final SimulationOptionSetting<Long> timeout;
 	public final SimulationOptionSetting<Integer> walker_no;
 
-	public void readData2()
+	private void readData()
 					throws IOException {
 		assert input != null;
 		if (!input.exists()) {
@@ -204,22 +207,22 @@ public final class SimulationOptions2 implements Serializable {
 		}
 	}
 
-	/**
-	 * Outputs the data of this object in the "input.txt" file format.
-	 *
-	 * @param out
-	 *
-	 * @throws IOException
-	 */
-	public void write(BufferedWriter out)
-					throws IOException {
-		for (SimulationOptionSetting setting : settings.values()) {
-			out.write(setting.getName());
-			out.write(" = ");
-			out.write(setting.get().toString());
-		}
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		settings.values().forEach((setting) -> {
+			b.append(setting.getName()).append(" = ").append(setting.get())
+							.append(System.lineSeparator());
+		});
+		return b.toString();
 	}
 
+	/**
+	 * TODO: Ensure the entries disallow changing the values inside!
+	 *
+	 * @param <K> The key type
+	 * @param <V> The value type
+	 */
 	private static class NoReplaceHashMap<K, V> extends HashMap<K, V> {
 		private static final long serialVersionUID = 1L;
 

@@ -5,7 +5,6 @@
  */
 package com.wormsim.data;
 
-import com.sun.istack.internal.NotNull;
 import com.wormsim.animals.AnimalGroup;
 import com.wormsim.animals.AnimalStage;
 import com.wormsim.animals.AnimalZoo;
@@ -24,8 +23,8 @@ public final class GroupDistribution {
 	private static final Logger LOG = Logger.getLogger(GroupDistribution.class
 					.getName());
 
-	GroupDistribution(@NotNull AnimalZoo p_zoo,
-										@NotNull Map<String, IntegerDistribution> p_group_dists) {
+	GroupDistribution( AnimalZoo p_zoo,
+										 Map<String, IntegerDistribution> p_group_dists) {
 		dists = new HashMap<>(p_group_dists.size());
 		p_group_dists.forEach((k, v) -> {
 			dists.put(p_zoo.getAnimalStage(k), v);
@@ -34,12 +33,12 @@ public final class GroupDistribution {
 
 	private final HashMap<AnimalStage, IntegerDistribution> dists;
 
-	public void sample(@NotNull TreeSet<AnimalGroup> p_groups) {
+	public void sample( TreeSet<AnimalGroup> p_groups) {
 		dists.forEach((k, v) -> p_groups.add(new AnimalGroup(k, v.sample())));
 	}
 
 	@Override
-	@NotNull
+	
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		dists.entrySet().forEach((dist) -> {

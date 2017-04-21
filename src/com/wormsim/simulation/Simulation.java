@@ -5,8 +5,6 @@
  */
 package com.wormsim.simulation;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import com.wormsim.LaunchFromFileMain;
 import com.wormsim.data.SimulationOptions;
 import com.wormsim.utils.Utils;
@@ -56,7 +54,7 @@ public class Simulation implements Runnable {
 	 *
 	 * @param ops The options to run with
 	 */
-	public Simulation(@NotNull SimulationOptions ops) {
+	public Simulation(SimulationOptions ops) {
 		this.options = ops;
 		this.threads = new SimulationThread[options.thread_no.get()];
 		this.walkers = new ArrayList<>((options.walker_no.get() * 11) / 10);
@@ -84,24 +82,24 @@ public class Simulation implements Runnable {
 			throw new RuntimeException(OUT_TXT + " file already exists!");
 		}
 	}
-	@NotNull
+
 	private final File data_file;
 	private int iteration;
-	@NotNull
+
 	private final LinkedBlockingDeque<Walker> iteration_walkers
 					= new LinkedBlockingDeque<>();
-	@NotNull
+
 	private final File out_file;
-	@NotNull
+
 	private final Random rng;
 	private volatile boolean running;
-	@Nullable
+
 	private volatile Thread thread;
-	@NotNull
+
 	private final SimulationThread[] threads;
-	@NotNull
+
 	private final ArrayList<Walker> walkers;
-	@NotNull
+
 	public final SimulationOptions options;
 
 	private void checkpoint() {
@@ -110,25 +108,41 @@ public class Simulation implements Runnable {
 						.get()) + ".dat");
 
 		// Output to the other file
-		try (ObjectOutputStream out = new ObjectOutputStream(
-						new BufferedOutputStream(new FileOutputStream(checkpoint_file)))) {
-			// TODO: Ensure that there is a header which contains the out.txt as a
-			// binary file.
-			out.writeObject(options);
-			for (Walker w : walkers) {
-				out.writeObject(w);
-			}
-		} catch (IOException ex) {
-			// TODO: Proper Error checking and control.
-			LOG.log(Level.SEVERE, null, ex);
-			setRunning(false);
-		}
-
+//		try (ObjectOutputStream out = new ObjectOutputStream(
+//						new BufferedOutputStream(new FileOutputStream(checkpoint_file)))) {
+//			// TODO: Ensure that there is a header which contains the out.txt as a
+//			// binary file.
+//			out.writeObject(options);
+//			for (Walker w : walkers) {
+//				out.writeObject(w);
+//			}
+//		} catch (IOException ex) {
+//			// TODO: Proper Error checking and control.
+//			LOG.log(Level.SEVERE, null, ex);
+//			setRunning(false);
+//		}
 		// Write the output here for the different files that are important
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(out_file, true))) {
 			out.newLine();
 			out.write("Checkpoint Recorded to :" + checkpoint_file.getName());
 			// TODO: Some brief details to look at.
+			out.newLine();
+			out.newLine();
+			out.write("                   ");
+			out.write(this.options.animal_zoo.get().toHeaderString());
+			out.newLine();
+			out.write("Between Variances: ");
+			out.write(this.options.animal_zoo.get().toBetweenVarianceString());
+			out.newLine();
+			out.write("Within Variances:  ");
+			out.write(this.options.animal_zoo.get().toWithinVarianceString());
+			out.newLine();
+			out.write("Variances:         ");
+			out.write(this.options.animal_zoo.get().toVarianceString());
+			out.newLine();
+			out.write("Convergence:       ");
+			out.write(this.options.animal_zoo.get().toPotentialScaleReductionString());
+			out.newLine();
 			out.newLine();
 			out.flush();
 		} catch (IOException ex) {
@@ -145,8 +159,22 @@ public class Simulation implements Runnable {
 			// Append input file
 			out.write("COMPLETED DATA GENERATION");
 			out.newLine();
-			out.write(
-							"TODO: Useful summary data goes here.");
+			out.newLine();
+			out.write("                   ");
+			out.write(this.options.animal_zoo.get().toHeaderString());
+			out.newLine();
+			out.write("Between Variances: ");
+			out.write(this.options.animal_zoo.get().toBetweenVarianceString());
+			out.newLine();
+			out.write("Within Variances:  ");
+			out.write(this.options.animal_zoo.get().toWithinVarianceString());
+			out.newLine();
+			out.write("Variances:         ");
+			out.write(this.options.animal_zoo.get().toVarianceString());
+			out.newLine();
+			out.write("Convergence:       ");
+			out.write(this.options.animal_zoo.get().toPotentialScaleReductionString());
+			out.newLine();
 			out.newLine();
 			out.write(
 							"================================================================================");
@@ -291,8 +319,7 @@ public class Simulation implements Runnable {
 					}
 					if (reachedCheckpoint()) {
 						// TODO: Temporarily does nothing.
-						// checkpoint();
-						System.out.println("CHECKPOINT");
+						checkpoint();
 					}
 					if (reachedEnd()) {
 						end();

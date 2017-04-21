@@ -15,15 +15,15 @@
 # The following may be used as the input.txt file for repeating this simulation.
 
 forced_run = true
-checkpoint_no = 0
+checkpoint_no = 10000
 record_freq_no = 1
-seed = 1492693342141
-recording_iteration_no = 10000
-burn_in_iteration_no = 5000
+seed = 1492772931486
+recording_iteration_no = 100000
+burn_in_iteration_no = 50000
 assay_iteration_no = 100
 new_run = true
 timeout = 0
-animal_zoo = com.wormsim.animals.AnimalZoo$Immutable@77a567e1
+animal_zoo = ANIMAL ZOO NYI
 detailed_data = true
 thread_no = 4
 initial_conditions = {
@@ -32,12 +32,7 @@ initial_conditions = {
 	TestStrain L2 ~ 1.0
 }
 
-walker_no = 16
+walker_no = 1024
 pheromone_no = 1
 ================================================================================
 Beginning Burn-In
-================================================================================
-COMPLETED DATA GENERATION
-TODO: Useful summary data goes here.
-================================================================================
-TODO: More detailed summary data goes here.

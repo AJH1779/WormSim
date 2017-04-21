@@ -5,18 +5,17 @@
  */
 package com.wormsim.animals;
 
-import com.sun.istack.internal.NotNull;
 import com.wormsim.data.TrackedValue;
 import com.wormsim.utils.Context;
 import com.wormsim.utils.StringFormula;
+import com.wormsim.utils.Utils;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collector;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -30,7 +29,6 @@ public class AnimalZoo implements TrackedValue {
 	private static final Logger LOG = Logger.getLogger(AnimalZoo.class.getName());
 	private static final long serialVersionUID = 1L;
 
-	@NotNull
 	public static AnimalZoo read(String p_str)
 					throws IOException {
 		throw new UnsupportedOperationException("NYI");
@@ -105,7 +103,7 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return True if added, false otherwise.
 	 */
-	public boolean addAnimalDevelopment(@NotNull AnimalDevelopment p_dev) {
+	public boolean addAnimalDevelopment(AnimalDevelopment p_dev) {
 		boolean flag = p_dev.getInvolvedStages().allMatch((s) -> s == null
 						|| this.stages.containsValue(s)) && this.developments.putIfAbsent(
 						p_dev.getPrevStage(), p_dev) == null;
@@ -129,7 +127,7 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @see AnimalStage#getFullName() For the key name
 	 */
-	public boolean addAnimalStage(@NotNull AnimalStage p_stage) {
+	public boolean addAnimalStage(AnimalStage p_stage) {
 		boolean flag = this.strains.containsValue(p_stage.getStrain())
 						&& this.stages
 										.putIfAbsent(p_stage.getFullName(), p_stage) == null;
@@ -148,12 +146,11 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return True if added, false otherwise.
 	 */
-	public boolean addAnimalStrain(@NotNull AnimalStrain p_strain) {
+	public boolean addAnimalStrain(AnimalStrain p_strain) {
 		return this.strains.putIfAbsent(p_strain.getName(), p_strain) == null;
 	}
 
 	@Override
-	@NotNull
 	public AnimalZoo.Immutable copy() {
 		return create(this.pheromone_count);
 	}
@@ -167,7 +164,6 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return A new animal zoo.
 	 */
-	@NotNull
 	public AnimalZoo.Immutable create(int p_pheromone_no) {
 		AnimalZoo.Immutable zoo = new AnimalZoo.Immutable();
 		strains.forEach((k, v) -> {
@@ -188,7 +184,7 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public void evolve(@NotNull RandomGenerator p_rng) {
+	public void evolve(RandomGenerator p_rng) {
 		this.tracked_values.forEach((v) -> v.evolve(p_rng));
 	}
 
@@ -204,8 +200,7 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @see AnimalStage#getFullName() The full name key.
 	 */
-	@NotNull
-	public AnimalStage getAnimalStage(@NotNull String p_key) {
+	public AnimalStage getAnimalStage(String p_key) {
 		return this.stages.get(p_key);
 	}
 
@@ -219,13 +214,12 @@ public class AnimalZoo implements TrackedValue {
 	 *
 	 * @return
 	 */
-	@NotNull
-	public AnimalStrain getAnimalStrain(@NotNull String p_key) {
+	public AnimalStrain getAnimalStrain(String p_key) {
 		return this.strains.get(p_key);
 	}
 
 	@Override
-	public void initialise(@NotNull RandomGenerator p_rng) {
+	public void initialise(RandomGenerator p_rng) {
 		this.tracked_values.stream().forEach((v) -> v.initialise(p_rng));
 	}
 
@@ -240,19 +234,34 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public void writeToStream(@NotNull ObjectOutputStream p_out)
-					throws IOException {
-		for (TrackedValue v : tracked_values) {
-			v.writeToStream(p_out);
-		}
+	public boolean stopAffectingVariance() {
+		return tracked_values.stream().reduce(false, (a, b) -> a || b
+						.stopAffectingVariance(), (a, b) -> a || b);
 	}
 
 	@Override
-	public void writeToWriter(@NotNull BufferedWriter p_out)
-					throws IOException {
-		for (TrackedValue v : tracked_values) {
-			v.writeToWriter(p_out);
-		}
+	public String toBetweenVarianceString() {
+		return tracked_values.stream().map((v) -> v.toBetweenVarianceString())
+						.collect(Utils.TAB_JOINING);
+	}
+
+	@Override
+	public String toCurrentValueString() {
+		return tracked_values.stream().map((v) -> v.toCurrentValueString())
+						.collect(Utils.TAB_JOINING);
+	}
+
+	@Override
+	public String toHeaderString() {
+		return tracked_values.stream().map((v) -> v.toHeaderString())
+						.collect(Utils.TAB_JOINING);
+	}
+
+	@Override
+	public String toPotentialScaleReductionString() {
+		return tracked_values.stream().map((v) -> v
+						.toPotentialScaleReductionString())
+						.collect(Utils.TAB_JOINING);
 	}
 
 	@Override
@@ -261,21 +270,15 @@ public class AnimalZoo implements TrackedValue {
 	}
 
 	@Override
-	public String toCurrentValueString() {
-		StringBuilder b = new StringBuilder();
-		tracked_values.forEach((v) -> {
-			b.append(v.toCurrentValueString());
-		});
-		return b.toString();
+	public String toVarianceString() {
+		return tracked_values.stream().map((v) -> v.toVarianceString())
+						.collect(Utils.TAB_JOINING);
 	}
 
 	@Override
-	public String toHeaderString() {
-		StringBuilder b = new StringBuilder();
-		tracked_values.forEach((v) -> {
-			b.append(v.toHeaderString());
-		});
-		return b.toString();
+	public String toWithinVarianceString() {
+		return tracked_values.stream().map((v) -> v.toWithinVarianceString())
+						.collect(Utils.TAB_JOINING);
 	}
 
 	/**
@@ -468,6 +471,8 @@ public class AnimalZoo implements TrackedValue {
 
 		/**
 		 * Throws <code>UnsupportedOperationException</code>.
+		 *
+		 * @param dev
 		 *
 		 * @return
 		 */

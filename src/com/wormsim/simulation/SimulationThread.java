@@ -5,8 +5,6 @@
  */
 package com.wormsim.simulation;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import com.wormsim.animals.AnimalGroup;
 import com.wormsim.data.SimulationConditions;
 import java.util.HashMap;
@@ -34,8 +32,8 @@ public class SimulationThread implements Runnable {
 	 * @param sim     The simulation
 	 * @param walkers The walker deque the thread will walk.
 	 */
-	SimulationThread(@NotNull Simulation sim,
-									 @NotNull LinkedBlockingDeque<Walker> walkers) {
+	SimulationThread( Simulation sim,
+									  LinkedBlockingDeque<Walker> walkers) {
 		// TODO: Sort constructors better.
 		this.scoring_interface = new ScoringInterface(this);
 		this.scores = new HashMap<>(16);
@@ -52,29 +50,29 @@ public class SimulationThread implements Runnable {
 
 		this.pheromones = new double[sim.options.pheromone_no.get()];
 	}
-	@NotNull
+	
 	private final ConsumeInterface con_interface;
-	@NotNull
+	
 	private final DevelopmentInterface dev_interface;
 	private double food;
-	@NotNull
+	
 	private final TreeSet<AnimalGroup> groups;
-	@NotNull
+	
 	private final SimulationConditions init_conditions;
 	private final int iter_max;
 	private final double[] pheromones;
-	@NotNull
+	
 	private final SamplingInterface sampling_interface;
-	@NotNull
+	
 	private final HashMap<String, Double> scores;
-	@NotNull
+	
 	private final ScoringInterface scoring_interface;
-	@NotNull
+	
 	private final Simulation sim;
-	@Nullable
+	
 	private volatile Thread thread;
 	private double time;
-	@NotNull
+	
 	private final LinkedBlockingDeque<Walker> walkers;
 
 	/**
@@ -99,7 +97,7 @@ public class SimulationThread implements Runnable {
 	 *
 	 * @param walker The walker to run with.
 	 */
-	private void run(@NotNull Walker walker) {
+	private void run( Walker walker) {
 		thread = Thread.currentThread();
 		scores.clear();
 		for (int i = 0; i < iter_max; i++) {
@@ -179,10 +177,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class ConsumeInterface {
 
-		private ConsumeInterface(@NotNull SimulationThread thread) {
+		private ConsumeInterface( SimulationThread thread) {
 			this.thread = thread;
 		}
-		@NotNull
+		
 		private final SimulationThread thread;
 
 		/**
@@ -225,10 +223,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class DevelopmentInterface {
 
-		private DevelopmentInterface(@NotNull SimulationThread thread) {
+		private DevelopmentInterface( SimulationThread thread) {
 			this.thread = thread;
 		}
-		@NotNull
+		
 		private final SimulationThread thread;
 
 		/**
@@ -239,7 +237,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if the group was added.
 		 */
-		public boolean addGroup(@NotNull AnimalGroup ag) {
+		public boolean addGroup( AnimalGroup ag) {
 			if (ag.getCount() < 1) {
 				return false;
 			}
@@ -254,7 +252,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if added (always true)
 		 */
-		public boolean addScore(@NotNull String ref, double del) {
+		public boolean addScore( String ref, double del) {
 			if (thread.scores.containsKey(ref)) {
 				thread.scores.put(ref, thread.scores.get(ref) + del);
 			} else {
@@ -303,7 +301,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The sampling interface.
 		 */
-		@NotNull
+		
 		public SamplingInterface getSamplingInterface() {
 			return thread.sampling_interface;
 		}
@@ -314,7 +312,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The scoring interface
 		 */
-		@NotNull
+		
 		public ScoringInterface getScoringInterface() {
 			return thread.scoring_interface;
 		}
@@ -338,10 +336,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class SamplingInterface {
 
-		private SamplingInterface(@NotNull SimulationThread thread) {
+		private SamplingInterface( SimulationThread thread) {
 			this.thread = thread;
 		}
-		@NotNull
+		
 		private final SimulationThread thread;
 
 		/**
@@ -394,10 +392,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class ScoringInterface {
 
-		private ScoringInterface(@NotNull SimulationThread thread) {
+		private ScoringInterface( SimulationThread thread) {
 			this.thread = thread;
 		}
-		@NotNull
+		
 		private final SimulationThread thread;
 
 		/**
@@ -408,7 +406,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if added (always true)
 		 */
-		public boolean addScore(@NotNull String ref, double del) {
+		public boolean addScore( String ref, double del) {
 			if (thread.scores.containsKey(ref)) {
 				thread.scores.put(ref, thread.scores.get(ref) + del);
 			} else {
@@ -457,7 +455,7 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The sampling interface.
 		 */
-		@NotNull
+		
 		public SamplingInterface getSamplingInterface() {
 			return thread.sampling_interface;
 		}

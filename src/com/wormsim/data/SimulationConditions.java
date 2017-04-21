@@ -5,7 +5,6 @@
  */
 package com.wormsim.data;
 
-import com.sun.istack.internal.NotNull;
 import com.wormsim.animals.AnimalZoo;
 import com.wormsim.utils.Utils;
 import java.io.IOException;
@@ -32,8 +31,7 @@ public class SimulationConditions {
 	private static final Logger LOG = Logger.getLogger(SimulationConditions.class
 					.getName());
 
-	@NotNull
-	public static SimulationConditions read(@NotNull String str)
+	public static SimulationConditions read(String str)
 					throws IOException {
 		RealDistribution food = null;
 		HashMap<Integer, RealDistribution> pheromones = new HashMap<>();
@@ -45,7 +43,7 @@ public class SimulationConditions {
 				String match = m.group();
 				String[] keyvalue = match.split("~");
 				if (keyvalue[0].matches("\\s*food\\s*")) {
-					food = Utils.stringToRealDistribution(keyvalue[1].trim());
+					food = Utils.readRealDistribution(keyvalue[1].trim());
 				} else if (keyvalue[0].matches("\\s*pheromone\\[\\d+\\]\\s*")) {
 					int leftbracket = keyvalue[0].indexOf('[') + 1;
 					int rightbracket = keyvalue[0].indexOf(']');
@@ -60,12 +58,12 @@ public class SimulationConditions {
 					} catch (NumberFormatException ex) {
 						throw new IOException(ex);
 					}
-					if (pheromones.putIfAbsent(id, Utils.stringToRealDistribution(
+					if (pheromones.putIfAbsent(id, Utils.readRealDistribution(
 									keyvalue[1].trim())) != null) {
 						throw new IOException("Duplicate pheromone id " + id);
 					}
 				} else { // Group Distribution
-					groups.put(keyvalue[0].trim(), Utils.stringToIntegerDistribution(
+					groups.put(keyvalue[0].trim(), Utils.readIntegerDistribution(
 									keyvalue[1]
 													.trim()));
 				}
@@ -92,9 +90,9 @@ public class SimulationConditions {
 		return new SimulationConditions(food, pheromone_arr, groups);
 	}
 
-	public SimulationConditions(@NotNull RealDistribution p_food_dist,
-															@NotNull RealDistribution[] p_pheromone_dists,
-															@NotNull HashMap<String, IntegerDistribution> p_group_dists) {
+	public SimulationConditions(RealDistribution p_food_dist,
+															RealDistribution[] p_pheromone_dists,
+															HashMap<String, IntegerDistribution> p_group_dists) {
 		this.food_dist = p_food_dist;
 		this.pheromone_dists = Collections.unmodifiableList(Arrays.asList(
 						p_pheromone_dists));
@@ -104,11 +102,11 @@ public class SimulationConditions {
 						= (Map<String, IntegerDistribution>) p_group_dists.clone();
 		this.group_dists = Collections.unmodifiableMap(clone);
 	}
-	@NotNull
+
 	public final RealDistribution food_dist;
-	@NotNull
+
 	public final Map<String, IntegerDistribution> group_dists;
-	@NotNull
+
 	public final List<RealDistribution> pheromone_dists;
 
 	/**
@@ -118,13 +116,11 @@ public class SimulationConditions {
 	 *
 	 * @return A sampled collection of animals.
 	 */
-	@NotNull
-	public GroupDistribution getGroupDistribution(@NotNull AnimalZoo zoo) {
+	public GroupDistribution getGroupDistribution(AnimalZoo zoo) {
 		return new GroupDistribution(zoo, group_dists);
 	}
 
 	@Override
-	@NotNull
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("{").append(System.lineSeparator());

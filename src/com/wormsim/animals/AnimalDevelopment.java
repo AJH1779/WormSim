@@ -5,9 +5,8 @@
  */
 package com.wormsim.animals;
 
+import com.wormsim.data.TrackedDevelopmentFunction;
 import com.wormsim.data.TrackedValue;
-import com.wormsim.data.TrackedValue.TrackedDecisionFunction;
-import com.wormsim.data.TrackedValue.TrackedScoringFunction;
 import com.wormsim.simulation.SimulationThread;
 import java.util.stream.Stream;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -118,8 +117,8 @@ public abstract class AnimalDevelopment {
 							zoo.getAnimalStage(getPrevStage().getFullName()),
 							zoo.getAnimalStage(next.getFullName()),
 							zoo.getAnimalStage(alt_next.getFullName()),
-							(decision instanceof TrackedDecisionFunction
-											? ((TrackedDecisionFunction) decision).copy()
+							(decision instanceof TrackedDevelopmentFunction
+											? ((TrackedDevelopmentFunction) decision).copy()
 											: decision)
 			);
 		}
@@ -223,8 +222,8 @@ public abstract class AnimalDevelopment {
 											? null
 											: zoo.getAnimalStage(next.getFullName()),
 							zoo.getAnimalStage(egg_next.getFullName()),
-							(decision instanceof TrackedDecisionFunction
-											? ((TrackedDecisionFunction) decision).copy()
+							(decision instanceof TrackedDevelopmentFunction
+											? ((TrackedDevelopmentFunction) decision).copy()
 											: decision)
 			);
 		}
@@ -309,8 +308,8 @@ public abstract class AnimalDevelopment {
 			return new AnimalDevelopment.Linear(
 							zoo.getAnimalStage(getPrevStage().getFullName()),
 							zoo.getAnimalStage(next.getFullName()),
-							(decision instanceof TrackedDecisionFunction
-											? ((TrackedDecisionFunction) decision).copy()
+							(decision instanceof TrackedDevelopmentFunction
+											? ((TrackedDevelopmentFunction) decision).copy()
 											: decision)
 			);
 		}
@@ -382,9 +381,9 @@ public abstract class AnimalDevelopment {
 		public AnimalDevelopment.Scoring changeZoo(AnimalZoo zoo) {
 			return new AnimalDevelopment.Scoring(
 							zoo.getAnimalStage(getPrevStage().getFullName()),
-							(decision instanceof TrackedScoringFunction
-											? ((TrackedScoringFunction) decision).copy()
-											: decision)
+							decision instanceof TrackedValue
+											? (ScoringFunction) ((TrackedValue) decision).copy()
+											: decision
 			);
 		}
 

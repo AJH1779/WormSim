@@ -14,5 +14,5 @@ import com.wormsim.animals.DevelopmentFunction;
 public interface TrackedDevelopmentFunction extends TrackedValue,
 				DevelopmentFunction {
 	@Override
-	public TrackedDecisionFunction copy();
+	public TrackedDevelopmentFunction copy();
 }

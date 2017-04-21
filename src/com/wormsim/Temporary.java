@@ -5,22 +5,23 @@
  */
 package com.wormsim;
 
-import com.sun.istack.internal.NotNull;
 import com.wormsim.animals.AnimalDevelopment;
 import com.wormsim.animals.AnimalStage;
 import com.wormsim.animals.AnimalStrain;
 import com.wormsim.animals.AnimalZoo;
 import com.wormsim.data.TrackedDevelopmentFunction;
+import com.wormsim.data.TrackedDouble;
 import com.wormsim.simulation.SimulationThread;
 import com.wormsim.utils.Utils;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
+ * This is a temporary class holding data that should be moved or removed later
+ * on.
  *
  * @author ah810
  */
@@ -30,10 +31,8 @@ public class Temporary {
 	/**
 	 * A generic default animal zoo.
 	 */
-	@NotNull
 	public static final AnimalZoo CODED_ANIMAL_ZOO = newCodedAnimalZooInstance();
 
-	@NotNull
 	private static AnimalZoo newCodedAnimalZooInstance() {
 		AnimalZoo zoo = new AnimalZoo();
 		AnimalStrain strain = new AnimalStrain("TestStrain", 0);
@@ -90,12 +89,12 @@ public class Temporary {
 		}
 
 		@Override
-		public TrackedDecisionFunction copy() {
+		public TrackedDevelopmentFunction copy() {
 			DauerBranchDevFunction1 that = new DauerBranchDevFunction1();
 			for (int i = 0; i < values.length; i++) {
 				that.values[i] = this.values[i].copy();
 			}
-			return (TrackedDecisionFunction) that;
+			return that;
 		}
 
 		@Override
@@ -127,37 +126,46 @@ public class Temporary {
 		}
 
 		@Override
+		public String toBetweenVarianceString() {
+			return Arrays.stream(values).map((v) -> v.toBetweenVarianceString())
+							.collect(Utils.TAB_JOINING);
+		}
+
+		@Override
 		public String toCurrentValueString() {
-			StringBuilder b = new StringBuilder();
-			for (TrackedDouble value : values) {
-				b.append(value.toCurrentValueString());
-			}
-			return b.toString();
+			return Arrays.stream(values).map((v) -> v.toCurrentValueString())
+							.collect(Utils.TAB_JOINING);
 		}
 
 		@Override
 		public String toHeaderString() {
-			StringBuilder b = new StringBuilder();
-			for (TrackedDouble value : values) {
-				b.append(value.toHeaderString());
-			}
-			return b.toString();
+			return Arrays.stream(values).map((v) -> v.toHeaderString())
+							.collect(Utils.TAB_JOINING);
 		}
 
 		@Override
-		public void writeToStream(ObjectOutputStream p_out)
-						throws IOException {
-			for (TrackedDouble value : values) {
-				value.writeToStream(p_out);
-			}
+		public String toPotentialScaleReductionString() {
+			return Arrays.stream(values).map((v) -> v
+							.toPotentialScaleReductionString())
+							.collect(Utils.TAB_JOINING);
 		}
 
 		@Override
-		public void writeToWriter(BufferedWriter p_out)
-						throws IOException {
-			for (TrackedDouble value : values) {
-				value.writeToWriter(p_out);
-			}
+		public String toVarianceString() {
+			return Arrays.stream(values).map((v) -> v.toVarianceString())
+							.collect(Utils.TAB_JOINING);
+		}
+
+		@Override
+		public String toWithinVarianceString() {
+			return Arrays.stream(values).map((v) -> v.toWithinVarianceString())
+							.collect(Utils.TAB_JOINING);
+		}
+
+		@Override
+		public boolean stopAffectingVariance() {
+			return Arrays.stream(values).reduce(false, (a, b) -> a || b
+							.stopAffectingVariance(), (a, b) -> a || b);
 		}
 	}
 

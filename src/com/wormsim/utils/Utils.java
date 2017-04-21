@@ -5,7 +5,6 @@
  */
 package com.wormsim.utils;
 
-import com.sun.istack.internal.NotNull;
 import com.wormsim.LaunchFromFileMain;
 import com.wormsim.data.SimulationCommands;
 import com.wormsim.simulation.Simulation;
@@ -21,6 +20,8 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.ConstantRealDistribution;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
@@ -46,10 +47,11 @@ public class Utils {
 	 *
 	 * @since 0.0.1
 	 */
-	@NotNull
+
 	private static final String[] AUTHOR_ARRAY = new String[]{"Arthur Hills", "Mark Viney", "Simon Harvey"};
 
 	private static final Logger LOG = Logger.getLogger(Utils.class.getName());
+
 	/**
 	 * The capture pattern for the animal stage.
 	 *
@@ -57,20 +59,19 @@ public class Utils {
 	 *
 	 * TODO: Make this work properly and allow for the arguments to be extracted.
 	 */
-	@NotNull
 	public static final Pattern ANIMAL_STAGE_PATTERN = Pattern.compile(
 					"\\v\\s*?stage\\s+.*?(\\s+?\\d+(.\\d+)?)+");
 	/**
 	 * The pattern for assigned values and strain definitions within the animal
 	 * zoo assignment pattern.
 	 */
-	@NotNull
+
 	public static final Pattern ANIMAL_ZOO_ASSIGNMENT_PATTERN = Pattern.compile(
 					"(strain[^\\v\\{]*\\{[.\\s\\S]*?(\\v\\t\\})|((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\}))");
 	/**
 	 * The generic pattern for assigned values within the input.txt format.
 	 */
-	@NotNull
+
 	public static final Pattern ASSIGNMENT_PATTERN = Pattern.compile(
 					"((?<=^)|(?<=\\v))[^#\\v]*?=([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\})");
 	/**
@@ -80,7 +81,7 @@ public class Utils {
 	 *
 	 * @since 0.0.1
 	 */
-	@NotNull
+
 	public static final List<String> AUTHORS = Collections.unmodifiableList(Arrays
 					.asList(AUTHOR_ARRAY));
 	/**
@@ -90,14 +91,14 @@ public class Utils {
 	 *
 	 * @since 0.0.1
 	 */
-	@NotNull
+
 	public static final String AUTHORS_AS_STRING = String.join(", ", AUTHOR_ARRAY);
 	/**
 	 * Intended as a pattern to ensure brackets are coupled. WIP.
 	 *
 	 * TODO: Make this a one time pass rather than checks on every bracket pair.
 	 */
-	@NotNull
+
 	public static final Pattern MULTIBRACKET_VALIDITY_PATTERN = Pattern.compile(
 					"\\s*\\{[\\s\\S]*\\}\\s*");
 	/**
@@ -110,27 +111,29 @@ public class Utils {
 	 *
 	 * @since 0.0.1
 	 */
-	@NotNull
+
 	public static final String REFERENCE = "null";
 	/**
 	 * The generic pattern for sampled values within the input.txt format.
 	 */
-	@NotNull
+
 	public static final Pattern SAMPLER_PATTERN = Pattern.compile(
 					"((?<=^)|(?<=\\v))[^#\\v]*?~([^\\{]*?\\v|[^\\{]*\\{[\\s\\S]*?\\v\\})");
 	/**
 	 * The pattern used for grabbing the key of the animal strain with whitespace.
 	 */
-	@NotNull
+
 	public static final Pattern STRAIN_KEY_PATTERN = Pattern.compile(
 					"(?<=strain)\\s+[^\\{]*");
 	/**
 	 * The pattern used for grabbing the strain definitions within the animal zoo
 	 * assignment pattern.
 	 */
-	@NotNull
+
 	public static final Pattern STRAIN_PATTERN = Pattern.compile(
 					"strain[^\\v\\{]*\\{[.\\s\\S]*?(\\v\\t\\})");
+	public static final Collector<CharSequence, ?, String> TAB_JOINING = Collectors
+					.joining("\t");
 	/**
 	 * The version code of this program.
 	 *
@@ -138,31 +141,64 @@ public class Utils {
 	 *
 	 * @since 0.0.1
 	 */
-	@NotNull
+
 	public static final String VERSION = "0.0.3";
+
 	public static final RealDistribution ZERO_REAL_DISTRIBUTION
 					= new ConstantRealDistribution(0.0);
 
 	/**
+	 * Returns a value bounded between min and max that is closest to the
+	 * specified value.
 	 *
-	 * @param val
-	 * @param min
-	 * @param max
+	 * @param val The value to bound
+	 * @param min The minimum of the bound.
+	 * @param max The maximum of the bound.
 	 *
-	 * @return
+	 * @return The bounded value.
 	 */
 	public static int bound(int val, int min, int max) {
 		return min(max(val, min), min);
 	}
 
+	/**
+	 * Returns a value bounded between min and max that is closest to the
+	 * specified value.
+	 *
+	 * @param val The value to bound
+	 * @param min The minimum of the bound.
+	 * @param max The maximum of the bound.
+	 *
+	 * @return The bounded value.
+	 */
 	public static float bound(float val, float min, float max) {
 		return min(max(val, min), min);
 	}
 
+	/**
+	 * Returns a value bounded between min and max that is closest to the
+	 * specified value.
+	 *
+	 * @param val The value to bound
+	 * @param min The minimum of the bound.
+	 * @param max The maximum of the bound.
+	 *
+	 * @return The bounded value.
+	 */
 	public static long bound(long val, long min, long max) {
 		return min(max(val, min), min);
 	}
 
+	/**
+	 * Returns a value bounded between min and max that is closest to the
+	 * specified value.
+	 *
+	 * @param val The value to bound
+	 * @param min The minimum of the bound.
+	 * @param max The maximum of the bound.
+	 *
+	 * @return The bounded value.
+	 */
 	public static double bound(double val, double min, double max) {
 		return min(max(val, min), min);
 	}
@@ -182,11 +218,13 @@ public class Utils {
 	public static void help() {
 		// TODO: Move these scanner outputs to a more consistent environment.
 		// TODO: Move the files to their own package.
-		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream("/com/wormsim/header.txt")).useDelimiter("\\Z")
+		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
+						"/com/wormsim/header.txt")).useDelimiter("\\Z")
 						.next().replace("{authors}", Utils.AUTHORS_AS_STRING)
 						.replace("{version}", Utils.VERSION)
 						.replace("{reference}", Utils.REFERENCE));
-		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream("/com/wormsim/help.txt")).useDelimiter("\\Z")
+		System.out.println(new Scanner(LaunchFromFileMain.class.getResourceAsStream(
+						"/com/wormsim/help.txt")).useDelimiter("\\Z")
 						.next().replace("{out.txt}", Simulation.OUT_TXT));
 	}
 
@@ -199,7 +237,8 @@ public class Utils {
 	 *
 	 * @return The distribution as a string.
 	 */
-	public static String integerDistributionToString(IntegerDistribution dist) {
+	public static String integerDistributionToString(
+					IntegerDistribution dist) {
 		if (dist instanceof EnumeratedIntegerDistribution) {
 			return Double.toString(dist.getNumericalMean());
 		} else if (dist instanceof UniformIntegerDistribution) {
@@ -251,8 +290,7 @@ public class Utils {
 	 *
 	 * @throws IOException If the input does not match a boolean.
 	 */
-	@NotNull
-	public static Boolean readBoolean(@NotNull String str)
+	public static Boolean readBoolean(String str)
 					throws IOException {
 		if (str.matches("true|True|T|t|yes|y|TRUE")) {
 			return Boolean.TRUE;
@@ -277,8 +315,8 @@ public class Utils {
 			} else if (current_cmd != null) {
 				data.get(current_cmd).add(arg);
 			} else {
-				throw new IllegalArgumentException("First Parameter must be Argument: " +
-								arg);
+				throw new IllegalArgumentException("First Parameter must be Argument: "
+								+ arg);
 			}
 		}
 		// Check if any of the commands are something to act upon right now, like help.
@@ -304,57 +342,12 @@ public class Utils {
 	 *
 	 * @throws IOException If the input does not match a integer.
 	 */
-	@NotNull
-	public static Integer readInteger(@NotNull String str)
+	public static Integer readInteger(String str)
 					throws IOException {
 		try {
 			return Integer.valueOf(str);
 		} catch (NumberFormatException ex) {
 			throw new IOException(ex);
-		}
-	}
-
-	/**
-	 * Returns a long object represented by the string input, throwing an
-	 * exception if the object is not an integer.
-	 *
-	 * @param str The long as a string.
-	 *
-	 * @return The represented value.
-	 *
-	 * @throws IOException If the input does not match a long.
-	 */
-	@NotNull
-	public static Long readLong(@NotNull String str)
-					throws IOException {
-		try {
-			return Long.valueOf(str);
-		} catch (NumberFormatException ex) {
-			throw new IOException(ex);
-		}
-	}
-
-	/**
-	 * Returns a string representation of the provided distribution. TODO: Make
-	 * this complete TODO: Make this compatible with custom distributions (or just
-	 * more complex ones).
-	 *
-	 * @param dist The distribution to translate
-	 *
-	 * @return The distribution as a string.
-	 */
-	public static String realDistributionToString(RealDistribution dist) {
-		if (dist instanceof ConstantRealDistribution) {
-			return Double.toString(dist.getNumericalMean());
-		} else if (dist instanceof UniformRealDistribution) {
-			return "Uniform(" + dist.getSupportLowerBound() + "," + dist
-							.getSupportUpperBound() + ")";
-		} else if (dist instanceof NormalDistribution) {
-			NormalDistribution dist2 = (NormalDistribution) dist;
-			return "Normal(" + dist2.getMean() + "," + dist2.getStandardDeviation()
-							+ ")";
-		} else {
-			return dist.toString();
 		}
 	}
 
@@ -366,7 +359,8 @@ public class Utils {
 	 *
 	 * @return The distribution
 	 */
-	public static IntegerDistribution stringToIntegerDistribution(String str) {
+	public static IntegerDistribution readIntegerDistribution(
+					String str) {
 		if (str.matches("[0-9]+(.[0-9]*)?")) {
 			// I.E. a number
 			return new EnumeratedIntegerDistribution(new int[]{Integer.valueOf(str)});
@@ -400,6 +394,25 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Returns a long object represented by the string input, throwing an
+	 * exception if the object is not an integer.
+	 *
+	 * @param str The long as a string.
+	 *
+	 * @return The represented value.
+	 *
+	 * @throws IOException If the input does not match a long.
+	 */
+	public static Long readLong(String str)
+					throws IOException {
+		try {
+			return Long.valueOf(str);
+		} catch (NumberFormatException ex) {
+			throw new IOException(ex);
+		}
+	}
+
 	// TODO: Revise the quality of these javadocs!
 	/**
 	 * Returns the distribution associated with the specified string. See the
@@ -409,7 +422,7 @@ public class Utils {
 	 *
 	 * @return The distribution
 	 */
-	public static RealDistribution stringToRealDistribution(String str) {
+	public static RealDistribution readRealDistribution(String str) {
 		if (str.matches("[0-9]+(.[0-9]*)?")) {
 			// I.E. a number
 			return new ConstantRealDistribution(Double.valueOf(str));
@@ -443,13 +456,36 @@ public class Utils {
 	}
 
 	/**
+	 * Returns a string representation of the provided distribution. TODO: Make
+	 * this complete TODO: Make this compatible with custom distributions (or just
+	 * more complex ones).
+	 *
+	 * @param dist The distribution to translate
+	 *
+	 * @return The distribution as a string.
+	 */
+	public static String realDistributionToString(RealDistribution dist) {
+		if (dist instanceof ConstantRealDistribution) {
+			return Double.toString(dist.getNumericalMean());
+		} else if (dist instanceof UniformRealDistribution) {
+			return "Uniform(" + dist.getSupportLowerBound() + "," + dist
+							.getSupportUpperBound() + ")";
+		} else if (dist instanceof NormalDistribution) {
+			NormalDistribution dist2 = (NormalDistribution) dist;
+			return "Normal(" + dist2.getMean() + "," + dist2.getStandardDeviation()
+							+ ")";
+		} else {
+			return dist.toString();
+		}
+	}
+
+	/**
 	 * Converts the time in milliseconds to a time string.
 	 *
 	 * @param dmillis The time in milliseconds.
 	 *
 	 * @return The time as a string.
 	 */
-	@NotNull
 	public static String toTime(long dmillis) {
 		// TODO: Choose a better format.
 		return String.format("%d days, %d hours, %d mins, %d secs, %d millis",

@@ -5,8 +5,6 @@
  */
 package com.wormsim.data;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import java.io.IOException;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -35,9 +33,9 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_name        The name of this setting.
 	 * @param p_constructor
 	 */
-	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
-																 @NotNull String p_name,
-																 @NotNull Constructor<T> p_constructor) {
+	public SimulationOptionSetting( SimulationOptions p_options,
+																  String p_name,
+																  Constructor<T> p_constructor) {
 		this(p_options, p_name, p_constructor, null, null);
 	}
 
@@ -50,10 +48,10 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_constructor
 	 * @param p_value       The value of this setting.
 	 */
-	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
-																 @NotNull String p_name,
-																 @NotNull Constructor<T> p_constructor,
-																 @Nullable T p_value) {
+	public SimulationOptionSetting( SimulationOptions p_options,
+																  String p_name,
+																  Constructor<T> p_constructor,
+																  T p_value) {
 		this(p_options, p_name, p_constructor, p_value, null);
 	}
 
@@ -64,10 +62,10 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_constructor
 	 * @param p_condition
 	 */
-	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
-																 @NotNull String p_name,
-																 @NotNull Constructor<T> p_constructor,
-																 @Nullable Predicate<T> p_condition) {
+	public SimulationOptionSetting( SimulationOptions p_options,
+																  String p_name,
+																  Constructor<T> p_constructor,
+																  Predicate<T> p_condition) {
 		this(p_options, p_name, p_constructor, null, p_condition);
 	}
 
@@ -80,11 +78,11 @@ public final class SimulationOptionSetting<T> {
 	 * @param p_condition
 	 */
 	@SuppressWarnings("LeakingThisInConstructor")
-	public SimulationOptionSetting(@NotNull SimulationOptions p_options,
-																 @NotNull String p_name,
-																 @NotNull Constructor<T> p_constructor,
-																 @Nullable T p_value,
-																 @Nullable Predicate<T> p_condition) {
+	public SimulationOptionSetting( SimulationOptions p_options,
+																  String p_name,
+																  Constructor<T> p_constructor,
+																  T p_value,
+																  Predicate<T> p_condition) {
 		if (p_condition == null || p_value == null || p_condition.test(p_value)) {
 			this.value = p_value;
 		} else {
@@ -109,7 +107,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @return
 	 */
-	@NotNull
+	
 	public T get() {
 		assert value != null;
 		return value;
@@ -120,7 +118,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @return The key it should take.
 	 */
-	@NotNull
+	
 	public String getName() {
 		return name;
 	}
@@ -142,7 +140,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @return True if it is a valid key for this setting, false otherwise.
 	 */
-	public boolean isName(@Nullable String p_name) {
+	public boolean isName( String p_name) {
 		return name.equalsIgnoreCase(p_name);
 	}
 
@@ -152,7 +150,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws IOException
 	 */
-	public void set(@NotNull T p_value)
+	public void set( T p_value)
 					throws IOException {
 		if (condition == null || condition.test(p_value)) {
 			this.value = p_value;
@@ -168,7 +166,7 @@ public final class SimulationOptionSetting<T> {
 	 *
 	 * @throws IOException
 	 */
-	public void setFromString(@NotNull String str)
+	public void setFromString( String str)
 					throws IOException {
 		set(constructor.read(str));
 	}
@@ -189,8 +187,8 @@ public final class SimulationOptionSetting<T> {
 		 *
 		 * @throws IOException If the string is malformed.
 		 */
-		@NotNull
-		public T read(@NotNull String str)
+		
+		public T read( String str)
 						throws IOException;
 	}
 }

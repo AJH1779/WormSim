@@ -5,7 +5,6 @@
  */
 package com.wormsim.data;
 
-import com.sun.istack.internal.NotNull;
 import com.wormsim.Temporary;
 import com.wormsim.animals.AnimalZoo;
 import com.wormsim.utils.Utils;
@@ -106,7 +105,7 @@ public final class SimulationOptions implements Serializable {
 	 * @param p_commands An object representing the command line arguments.
 	 *
 	 */
-	public SimulationOptions(@NotNull SimulationCommands p_commands) {
+	public SimulationOptions(SimulationCommands p_commands) {
 		this.settings = new NoReplaceHashMap<>();
 		// Initialise the variables for quick access.
 		// Additional variables can be created for access through the settings
@@ -150,43 +149,24 @@ public final class SimulationOptions implements Serializable {
 
 	// NOTE: These are made public for the sake of efficiency at the cost of security.
 	// The objects themselves should be made secure.
-	@NotNull
 	public final SimulationOptionSetting<AnimalZoo> animal_zoo;
-	@NotNull
 	public final SimulationOptionSetting<Integer> assay_iteration_no;
-	@NotNull
 	public final SimulationOptionSetting<Integer> burn_in_no;
-	@NotNull
 	public final SimulationOptionSetting<Integer> checkpoint_no;
-	@NotNull
 	public final SimulationCommands cmds;
-	@NotNull
 	public final SimulationOptionSetting<Boolean> detailed_data;
-	@NotNull
 	public final File directory;
-	@NotNull
 	public final SimulationOptionSetting<Boolean> forced_run;
-	@NotNull
 	public final SimulationOptionSetting<SimulationConditions> initial_conditions;
-	@NotNull
 	public final File input;
-	@NotNull
 	public final SimulationOptionSetting<Boolean> new_run;
-	@NotNull
 	public final SimulationOptionSetting<Integer> pheromone_no;
-	@NotNull
 	public final SimulationOptionSetting<Integer> record_freq_no;
-	@NotNull
 	public final SimulationOptionSetting<Integer> record_no;
-	@NotNull
 	public final SimulationOptionSetting<Long> seed;
-	@NotNull
 	public final HashMap<String, SimulationOptionSetting> settings;
-	@NotNull
 	public final SimulationOptionSetting<Integer> thread_no;
-	@NotNull
 	public final SimulationOptionSetting<Long> timeout;
-	@NotNull
 	public final SimulationOptionSetting<Integer> walker_no;
 
 	public String getMissingParametersList() {
@@ -223,7 +203,6 @@ public final class SimulationOptions implements Serializable {
 	}
 
 	@Override
-	@NotNull
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		settings.values().forEach((setting) -> {
@@ -243,7 +222,6 @@ public final class SimulationOptions implements Serializable {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		@NotNull
 		public Object clone() {
 			return super.clone(); //To change body of generated methods, choose Tools | Templates.
 		}

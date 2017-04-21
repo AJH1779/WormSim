@@ -13,15 +13,13 @@ import com.wormsim.data.SimulationCommands;
 import com.wormsim.data.SimulationConditions;
 import com.wormsim.data.SimulationOptions;
 import com.wormsim.data.TrackedDevelopmentFunction;
-import com.wormsim.data.TrackedValue;
+import com.wormsim.data.TrackedDouble;
 import com.wormsim.simulation.Simulation;
 import com.wormsim.simulation.SimulationThread;
 import com.wormsim.utils.Utils;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math3.distribution.BinomialDistribution;
@@ -71,7 +69,9 @@ public class LaunchFromCodeMain {
 		for (AnimalDevelopment dev : devs) {
 			zoo.addAnimalDevelopment(dev);
 		}
-		return zoo.copy();
+		AnimalZoo.Immutable copy = zoo.copy();
+		copy.stopAffectingVariance();
+		return copy;
 	}
 
 	private static SimulationConditions makeCustomInitialConditions() {
@@ -96,12 +96,12 @@ public class LaunchFromCodeMain {
 		// Change options here.
 		ops.animal_zoo.set(makeCustomAnimalZoo());
 		ops.assay_iteration_no.set(100);
-		ops.burn_in_no.set(5000);
-		ops.record_no.set(10000);
-		ops.checkpoint_no.set(0);
+		ops.burn_in_no.set(50000);
+		ops.record_no.set(100000);
+		ops.checkpoint_no.set(10000);
 		ops.detailed_data.set(Boolean.TRUE);
 		ops.initial_conditions.set(makeCustomInitialConditions());
-		ops.walker_no.set(16);
+		ops.walker_no.set(1024);
 		ops.pheromone_no.set(1);
 		ops.forced_run.set(Boolean.TRUE);
 
@@ -120,10 +120,10 @@ public class LaunchFromCodeMain {
 
 		DauerBranchDevFunction1() {
 			for (int i = 0; i < values.length; i++) {
-				values[i] = new TrackedValue.TrackedDouble(0.0);
+				values[i] = new TrackedDouble(0.0);
 			}
 		}
-		private final TrackedValue.TrackedDouble[] values = new TrackedValue.TrackedDouble[1];
+		private final TrackedDouble[] values = new TrackedDouble[1];
 
 		@Override
 		public int applyAsInt(SimulationThread.SamplingInterface p_iface,
@@ -133,75 +133,85 @@ public class LaunchFromCodeMain {
 		}
 
 		@Override
-		public TrackedValue.TrackedDecisionFunction copy() {
+		public TrackedDevelopmentFunction copy() {
 			DauerBranchDevFunction1 that = new DauerBranchDevFunction1();
 			for (int i = 0; i < values.length; i++) {
 				that.values[i] = this.values[i].copy();
 			}
-			return (TrackedValue.TrackedDecisionFunction) that;
+			return that;
 		}
 
 		@Override
 		public void evolve(RandomGenerator p_rng) {
-			for (TrackedValue.TrackedDouble value : values) {
+			for (TrackedDouble value : values) {
 				value.evolve(p_rng);
 			}
 		}
 
 		@Override
 		public void initialise(RandomGenerator p_rng) {
-			for (TrackedValue.TrackedDouble value : values) {
+			for (TrackedDouble value : values) {
 				value.initialise(p_rng);
 			}
 		}
 
 		@Override
 		public void retain() {
-			for (TrackedValue.TrackedDouble value : values) {
+			for (TrackedDouble value : values) {
 				value.retain();
 			}
 		}
 
 		@Override
 		public void revert() {
-			for (TrackedValue.TrackedDouble value : values) {
+			for (TrackedDouble value : values) {
 				value.revert();
 			}
 		}
 
 		@Override
+		public boolean stopAffectingVariance() {
+			return Arrays.stream(values).reduce(false, (a, b) -> a || b
+							.stopAffectingVariance(), (a, b) -> a || b);
+		}
+
+		@Override
+		public String toBetweenVarianceString() {
+			return Arrays.stream(values).map((v) -> v.toBetweenVarianceString())
+							.collect(Utils.TAB_JOINING);
+		}
+
+		@Override
 		public String toCurrentValueString() {
-			StringBuilder b = new StringBuilder();
-			for (TrackedDouble value : values) {
-				b.append(value.toCurrentValueString());
-			}
-			return b.toString();
+			return Arrays.stream(values).map((v) -> v.toCurrentValueString())
+							.collect(Utils.TAB_JOINING);
 		}
 
 		@Override
 		public String toHeaderString() {
-			StringBuilder b = new StringBuilder();
-			for (TrackedDouble value : values) {
-				b.append(value.toHeaderString());
-			}
-			return b.toString();
+			return Arrays.stream(values).map((v) -> v.toHeaderString())
+							.collect(Utils.TAB_JOINING);
 		}
 
 		@Override
-		public void writeToStream(ObjectOutputStream p_out)
-						throws IOException {
-			for (TrackedValue.TrackedDouble value : values) {
-				value.writeToStream(p_out);
-			}
+		public String toPotentialScaleReductionString() {
+			return Arrays.stream(values).map((v) -> v
+							.toPotentialScaleReductionString())
+							.collect(Utils.TAB_JOINING);
 		}
 
 		@Override
-		public void writeToWriter(BufferedWriter p_out)
-						throws IOException {
-			for (TrackedValue.TrackedDouble value : values) {
-				value.writeToWriter(p_out);
-			}
+		public String toVarianceString() {
+			return Arrays.stream(values).map((v) -> v.toVarianceString())
+							.collect(Utils.TAB_JOINING);
 		}
+
+		@Override
+		public String toWithinVarianceString() {
+			return Arrays.stream(values).map((v) -> v.toWithinVarianceString())
+							.collect(Utils.TAB_JOINING);
+		}
+
 	}
 
 }

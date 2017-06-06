@@ -55,7 +55,9 @@ public class LaunchFromFileMain {
 				LOG.log(Level.SEVERE, msg);
 				throw new IOException(msg);
 			}
-			new Simulation(ops).run();
+
+			//new Simulation(ops).run();
+			throw new UnsupportedOperationException("Not Yet Implemented");
 		} catch (FileNotFoundException ex) {
 			// TODO: An output for the command line that isn't scary looking, it
 			// should just be informative.

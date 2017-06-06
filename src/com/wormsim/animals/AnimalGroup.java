@@ -7,7 +7,6 @@ package com.wormsim.animals;
 
 import com.wormsim.simulation.SimulationThread.ConsumeInterface;
 import com.wormsim.simulation.SimulationThread.DevelopmentInterface;
-import com.wormsim.simulation.SimulationThread.ScoringInterface;
 import java.util.logging.Logger;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -27,8 +26,8 @@ public class AnimalGroup implements Comparable {
 	 * @param animal The animal stage the creatures are at
 	 * @param count  The number of animals
 	 */
-	public AnimalGroup(AnimalStage animal, int count) {
-		this(animal, count, animal.getDevelopmentTime());
+	public AnimalGroup(AnimalStage2Instance animal, int count) {
+		this(animal, count, animal.dev_time.get());
 	}
 
 	/**
@@ -39,12 +38,12 @@ public class AnimalGroup implements Comparable {
 	 * @param count    The number of animals
 	 * @param dev_time The time until the next development stage
 	 */
-	public AnimalGroup(AnimalStage animal, int count, double dev_time) {
+	public AnimalGroup(AnimalStage2Instance animal, int count, double dev_time) {
 		this.animal = animal;
 		this.count = count;
 		this.dev_time_rem = dev_time;
 	}
-	private final AnimalStage animal;
+	private final AnimalStage2Instance animal;
 	private final int count;
 	private double dev_time_rem;
 
@@ -64,7 +63,7 @@ public class AnimalGroup implements Comparable {
 							? -1
 							: (that.dev_time_rem < this.dev_time_rem
 											? 1
-											: (that.animal.id - this.animal.id));
+											: (that.animal.hashCode() - this.animal.hashCode()));
 		} else {
 			throw new ClassCastException("Invalid Class: " + p_o.getClass());
 		}
@@ -77,11 +76,11 @@ public class AnimalGroup implements Comparable {
 	 * @param delt  The time elapsed
 	 */
 	public void consumeAndEmit(ConsumeInterface iface, double delt) {
-		iface.eatFood(getCount() * getAnimalStage().getFoodConsumptionRate()
+		iface.eatFood(getCount() * getAnimalStage().food_rate.get()
 						* delt);
 		for (int j = 0; j < iface.getPheromoneNumber(); j++) {
 			iface.emitPheromone(getCount()
-							* getAnimalStage().getPheromoneProductionRate(j) * delt, j);
+							* getAnimalStage().pheromone_rates[j].get() * delt, j);
 		}
 		dev_time_rem -= delt;
 	}
@@ -94,7 +93,7 @@ public class AnimalGroup implements Comparable {
 	 * @param rng   The random generator to use
 	 */
 	public void develop(DevelopmentInterface iface, RandomGenerator rng) {
-		animal.getAnimalDevelopment().develop(iface, count, rng);
+		animal.development.develop(iface, count, rng);
 	}
 
 	/**
@@ -102,7 +101,7 @@ public class AnimalGroup implements Comparable {
 	 *
 	 * @return The animal stage
 	 */
-	public AnimalStage getAnimalStage() {
+	public AnimalStage2Instance getAnimalStage() {
 		return animal;
 	}
 
@@ -124,7 +123,8 @@ public class AnimalGroup implements Comparable {
 		return dev_time_rem;
 	}
 
+	/*
 	public void score(ScoringInterface iface) {
 		animal.score(iface, count);
-	}
+	}*/
 }

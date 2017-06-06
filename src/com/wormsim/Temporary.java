@@ -5,17 +5,19 @@
  */
 package com.wormsim;
 
-import com.wormsim.animals.AnimalDevelopment;
-import com.wormsim.animals.AnimalStage;
-import com.wormsim.animals.AnimalStrain;
-import com.wormsim.animals.AnimalZoo;
-import com.wormsim.data.TrackedDevelopmentFunction;
-import com.wormsim.data.TrackedDouble;
+import com.wormsim.animals.AnimalDevelopment2;
+import com.wormsim.animals.AnimalGroup;
+import com.wormsim.animals.AnimalStage2;
+import com.wormsim.animals.AnimalStage2Instance;
+import com.wormsim.animals.AnimalStrain2;
+import com.wormsim.animals.AnimalZoo2;
 import com.wormsim.simulation.SimulationThread;
+import com.wormsim.tracking.ChangingDouble;
+import com.wormsim.tracking.ConstantDouble;
+import com.wormsim.tracking.TrackedDouble;
+import com.wormsim.tracking.TrackedDoubleInstance;
 import com.wormsim.utils.Utils;
-import java.util.Arrays;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -26,147 +28,122 @@ import org.apache.commons.math3.random.RandomGenerator;
  * @author ah810
  */
 public class Temporary {
-	private static final Logger LOG = Logger.getLogger(Temporary.class.getName());
-
-	/**
-	 * A generic default animal zoo.
-	 */
-	public static final AnimalZoo CODED_ANIMAL_ZOO = newCodedAnimalZooInstance();
-
-	private static AnimalZoo newCodedAnimalZooInstance() {
-		AnimalZoo zoo = new AnimalZoo();
-		AnimalStrain strain = new AnimalStrain("TestStrain", 0);
-		AnimalStage[] stages = {
-			new AnimalStage("L1", strain, 1.0, 1.0, 1.0),
-			new AnimalStage("L2", strain, 1.0, 1.0, 1.0),
-			new AnimalStage("L2d", strain, 1.0, 1.0, 1.0),
-			new AnimalStage("Dauer", strain, 0.0, 0.0, 0.0)
-		};
-		AnimalDevelopment[] devs = {
-			new AnimalDevelopment.Branching(stages[0], stages[1], stages[2],
-			new DauerBranchDevFunction1()),
-			new AnimalDevelopment.Laying(stages[1], null, stages[0],
-			(p_iface, p_count, p_rng) -> {
-				return p_count * 100;
-			}),
-			new AnimalDevelopment.Linear(stages[2], stages[3],
-			(p_iface, p_count, p_rng) -> {
-				return p_count;
-			}),
-			new AnimalDevelopment.Scoring(stages[3], (p_iface, p_count) -> {
-				p_iface.addScore(stages[3].getFullName(), p_count);
-			})
-		};
-		zoo.addAnimalStrain(strain);
-		for (AnimalStage teststage : stages) {
-			zoo.addAnimalStage(teststage);
-		}
-		for (AnimalDevelopment dev : devs) {
-			zoo.addAnimalDevelopment(dev);
-		}
-		return zoo.copy();
-	}
-
-	private Temporary() {
-	}
-
-	private static class DauerBranchDevFunction1 implements
-					TrackedDevelopmentFunction {
-		private static final long serialVersionUID = 1L;
-
-		DauerBranchDevFunction1() {
-			for (int i = 0; i < values.length; i++) {
-				values[i] = new TrackedDouble(0.0);
-			}
-		}
-		private final TrackedDouble[] values = new TrackedDouble[1];
-
-		@Override
-		public int applyAsInt(SimulationThread.SamplingInterface p_iface,
-													int p_count, RandomGenerator p_rng) {
-			double prob = Utils.logistic(values[0].get());
-			return new BinomialDistribution(p_rng, p_count, prob).sample();
-		}
-
-		@Override
-		public TrackedDevelopmentFunction copy() {
-			DauerBranchDevFunction1 that = new DauerBranchDevFunction1();
-			for (int i = 0; i < values.length; i++) {
-				that.values[i] = this.values[i].copy();
-			}
-			return that;
-		}
-
-		@Override
-		public void evolve(RandomGenerator p_rng) {
-			for (TrackedDouble value : values) {
-				value.evolve(p_rng);
-			}
-		}
-
-		@Override
-		public void initialise(RandomGenerator p_rng) {
-			for (TrackedDouble value : values) {
-				value.initialise(p_rng);
-			}
-		}
-
-		@Override
-		public void retain() {
-			for (TrackedDouble value : values) {
-				value.retain();
-			}
-		}
-
-		@Override
-		public void revert() {
-			for (TrackedDouble value : values) {
-				value.revert();
-			}
-		}
-
-		@Override
-		public String toBetweenVarianceString() {
-			return Arrays.stream(values).map((v) -> v.toBetweenVarianceString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toCurrentValueString() {
-			return Arrays.stream(values).map((v) -> v.toCurrentValueString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toHeaderString() {
-			return Arrays.stream(values).map((v) -> v.toHeaderString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toPotentialScaleReductionString() {
-			return Arrays.stream(values).map((v) -> v
-							.toPotentialScaleReductionString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toVarianceString() {
-			return Arrays.stream(values).map((v) -> v.toVarianceString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toWithinVarianceString() {
-			return Arrays.stream(values).map((v) -> v.toWithinVarianceString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public boolean stopAffectingVariance() {
-			return Arrays.stream(values).reduce(false, (a, b) -> a || b
-							.stopAffectingVariance(), (a, b) -> a || b);
-		}
-	}
+//	private static final Logger LOG = Logger.getLogger(Temporary.class.getName());
+//
+//	/**
+//	 * A generic default animal zoo.
+//	 */
+//	public static final AnimalZoo2 CODED_ANIMAL_ZOO = newCodedAnimalZooInstance();
+//
+//	private static AnimalZoo2 newCodedAnimalZooInstance(SimulationOptions ops) {
+//		AnimalZoo2 zoo = new AnimalZoo2();
+//		AnimalStrain2 strain = new AnimalStrain2(zoo, "TestStrain");
+//		AnimalStage2[] stages = {
+//			new AnimalStage2("L1", strain, new ConstantDouble("Food", 1.0),
+//			new ConstantDouble("Dev", 1.0),
+//			new ConstantDouble[]{new ConstantDouble("Phero1", 1.0)}),
+//			new AnimalStage2("L2", strain, new ConstantDouble("Food", 1.0),
+//			new ConstantDouble("Dev", 1.0),
+//			new ConstantDouble[]{new ConstantDouble("Phero1", 1.0)}),
+//			new AnimalStage2("L2d", strain, new ConstantDouble("Food", 1.0),
+//			new ConstantDouble("Dev", 1.0),
+//			new ConstantDouble[]{new ConstantDouble("Phero1", 1.0)}),
+//			new AnimalStage2("Dauer", strain, new ConstantDouble("Food", 0.0),
+//			new ConstantDouble("Dev", 0.0),
+//			new ConstantDouble[]{new ConstantDouble("Phero1", 0.0)})
+//		};
+//		AnimalDevelopment2[] devs = {
+//			new LaunchFromCodeMain.DauerDevelopment(ops, stages[0], stages[1], stages[2]),
+//			new AnimalDevelopment2.ExplosiveLaying(stages[1],
+//			stages[0], new ConstantDouble("Fecundity", 100.0)),
+//			new AnimalDevelopment2.Linear(stages[2], stages[3]),
+//			new LaunchFromCodeMain.DauerScoring(stages[3])
+//		};
+//		return zoo;
+//	}
+//
+//	private Temporary() {
+//	}
+//
+//	public static class DauerDevelopment extends AnimalDevelopment2 {
+//		private static final long serialVersionUID = 1L;
+//
+//		public DauerDevelopment(AnimalStage2 actor,
+//														AnimalStage2 repro,
+//														AnimalStage2 dauer) {
+//			super(actor, new ChangingDouble[]{
+//				new ChangingDouble("DD A") {
+//					@Override
+//					protected double evolve(double p_val, RandomGenerator p_rng) {
+//						return p_rng.nextGaussian() * 0.05;
+//					}
+//
+//					@Override
+//					protected double initialise(RandomGenerator p_rng) {
+//						return p_rng.nextGaussian() * 3.0;
+//					}
+//				},
+//				new ChangingDouble("DD B") {
+//					@Override
+//					protected double evolve(double p_val, RandomGenerator p_rng) {
+//						return p_rng.nextGaussian() * 0.01;
+//					}
+//
+//					@Override
+//					protected double initialise(RandomGenerator p_rng) {
+//						return p_rng.nextGaussian();
+//					}
+//				},
+//				new ChangingDouble("DD C") {
+//					@Override
+//					protected double evolve(double p_val, RandomGenerator p_rng) {
+//						return p_rng.nextGaussian() * 0.01;
+//					}
+//
+//					@Override
+//					protected double initialise(RandomGenerator p_rng) {
+//						return p_rng.nextGaussian();
+//					}
+//				},
+//				new ChangingDouble("DD D") {
+//					@Override
+//					protected double evolve(double p_val, RandomGenerator p_rng) {
+//						return p_rng.nextGaussian() * 0.01;
+//					}
+//
+//					@Override
+//					protected double initialise(RandomGenerator p_rng) {
+//						return p_rng.nextGaussian();
+//					}
+//				}
+//			}, new AnimalStage2[]{repro, dauer});
+//		}
+//
+//		@Override
+//		public void apply(SimulationThread.DevelopmentInterface p_iface, int p_count,
+//											RandomGenerator p_rng, TrackedDoubleInstance[] p_values,
+//											AnimalStage2Instance[] p_stages) {
+//			// double prob = Utils.logistic(values[0].get());
+//			double prob = Utils.logistic(p_values[0].get()) / (1.0 + p_values[1].get()
+//							* Math.pow(p_iface.getFood(), p_values[2].get())
+//							* Math.pow(p_iface.getPheromone(0), p_values[3].get()));
+//			int count = new BinomialDistribution(p_rng, p_count, prob).sample();
+//			p_iface.addGroup(new AnimalGroup(p_stages[0], p_count - count));
+//			p_iface.addGroup(new AnimalGroup(p_stages[1], count));
+//		}
+//	}
+//
+//	public static class DauerScoring extends AnimalDevelopment2 {
+//		public DauerScoring(AnimalStage2 actor) {
+//			super(actor, new TrackedDouble[0], new AnimalStage2[0]);
+//		}
+//
+//		@Override
+//		public void apply(SimulationThread.DevelopmentInterface p_iface, int p_count,
+//											RandomGenerator p_rng, TrackedDoubleInstance[] p_values,
+//											AnimalStage2Instance[] p_stages) {
+//
+//		}
+//	}
 
 }

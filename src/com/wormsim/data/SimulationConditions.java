@@ -6,6 +6,7 @@
 package com.wormsim.data;
 
 import com.wormsim.animals.AnimalZoo;
+import com.wormsim.animals.AnimalZoo2Instance;
 import com.wormsim.utils.Utils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -116,7 +117,7 @@ public class SimulationConditions {
 	 *
 	 * @return A sampled collection of animals.
 	 */
-	public GroupDistribution getGroupDistribution(AnimalZoo zoo) {
+	public GroupDistribution getGroupDistribution(AnimalZoo2Instance zoo) {
 		return new GroupDistribution(zoo, group_dists);
 	}
 

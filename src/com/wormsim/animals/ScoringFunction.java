@@ -35,5 +35,5 @@ public interface ScoringFunction {
 	 * @param iface The sampling interface
 	 * @param count The number of animals
 	 */
-	public void applyAsDouble(SimulationThread.ScoringInterface iface, int count);
+	public void applyAsDouble(SimulationThread.SamplingInterface iface, int count);
 }

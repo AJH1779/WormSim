@@ -5,7 +5,6 @@
  */
 package com.wormsim.animals;
 
-import com.wormsim.simulation.SimulationThread.ScoringInterface;
 import java.util.logging.Logger;
 
 // TODO: Maximum total pheromone production rate and other more generalised limitations.
@@ -16,10 +15,10 @@ import java.util.logging.Logger;
  * @version 0.0.1
  */
 public final class AnimalStage {
-	private static final Logger LOG = Logger
-					.getLogger(AnimalStage.class.getName());
 
 	private static int ID = 0;
+	private static final Logger LOG = Logger
+					.getLogger(AnimalStage.class.getName());
 
 	/**
 	 * Creates a new stage for the animal with the specified name and strain.
@@ -79,7 +78,6 @@ public final class AnimalStage {
 		}
 		this.dev_time = p_dev_time;
 	}
-	public final int id;
 
 	/**
 	 * Creates a new stage cloning the provided stage but for the provided strain.
@@ -113,6 +111,12 @@ public final class AnimalStage {
 	private final String name;
 	private final double[] pheromone_rates;
 	private final AnimalStrain strain;
+	public final int id;
+
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof AnimalStage && ((AnimalStage) obj).id == id;
+	}
 
 	/**
 	 * Returns the animal development decision for this stage.
@@ -184,19 +188,9 @@ public final class AnimalStage {
 		return strain;
 	}
 
-	/**
-	 * Called at the end of the simulation run for allocating additional score
-	 * based on the composition of the final stage.
-	 *
-	 * By default, simply adds the number of animals at this stage to the score
-	 * board.
-	 *
-	 * @param iface The scoring interface
-	 * @param count The number in the group.
-	 */
-	public void score(ScoringInterface iface, int count) {
-		iface.addScore(this.getFullName(), count);
-		// TODO: Allow for a ScoringFunction instead?
+	@Override
+	public int hashCode() {
+		return id;
 	}
 
 	/**
@@ -208,13 +202,4 @@ public final class AnimalStage {
 		this.development = dev;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		return obj instanceof AnimalStage && ((AnimalStage) obj).id == id;
-	}
-
-	@Override
-	public int hashCode() {
-		return id;
-	}
 }

@@ -6,19 +6,21 @@
 package com.wormsim.simulation;
 
 import com.wormsim.LaunchFromFileMain;
+import com.wormsim.animals.AnimalZoo2;
 import com.wormsim.data.SimulationOptions;
+import com.wormsim.tracking.TrackedCalculation;
+import com.wormsim.tracking.TrackedQuantity;
 import com.wormsim.utils.Utils;
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,9 +54,12 @@ public class Simulation implements Runnable {
 	/**
 	 * Creates a new simulation object using the specified options.
 	 *
-	 * @param ops The options to run with
+	 * @param ops                The options to run with
+	 * @param fitness            The fitness measure for the simulation.
+	 * @param tracked_quantities The tracked quantities of the simulation.
 	 */
-	public Simulation(SimulationOptions ops) {
+	public Simulation(SimulationOptions ops, TrackedCalculation fitness,
+										TrackedCalculation[] tracked_quantities) {
 		this.options = ops;
 		this.threads = new SimulationThread[options.thread_no.get()];
 		this.walkers = new ArrayList<>((options.walker_no.get() * 11) / 10);
@@ -81,31 +86,38 @@ public class Simulation implements Runnable {
 							this.out_file);
 			throw new RuntimeException(OUT_TXT + " file already exists!");
 		}
+		this.fitness = fitness;
+		this.tracked_calcs = new ArrayList<>(Arrays.asList(tracked_quantities));
+		this.zoo = options.animal_zoo.get();
+		this.tracked_quantities = new ArrayList<>();
+		this.tracked_quantities.add(zoo);
+		this.tracked_quantities.addAll(tracked_calcs);
+		this.tracked_quantities.add(fitness);
 	}
 
 	private final File data_file;
+	private final TrackedCalculation fitness;
 	private int iteration;
-
 	private final LinkedBlockingDeque<Walker> iteration_walkers
 					= new LinkedBlockingDeque<>();
-
 	private final File out_file;
-
 	private final Random rng;
 	private volatile boolean running;
-
 	private volatile Thread thread;
-
 	private final SimulationThread[] threads;
-
+	private final ArrayList<TrackedCalculation> tracked_calcs;
+	private final ArrayList<TrackedQuantity> tracked_quantities;
 	private final ArrayList<Walker> walkers;
-
+	private final AnimalZoo2 zoo;
 	public final SimulationOptions options;
+	public final AtomicInteger walkers_done = new AtomicInteger(0);
 
 	private void checkpoint() {
 		File checkpoint_file = new File(options.directory, "checkpoint"
 						+ ((iteration - options.burn_in_no.get()) / options.checkpoint_no
 						.get()) + ".dat");
+
+		this.tracked_quantities.forEach((w) -> w.checkpoint());
 
 		// Output to the other file
 //		try (ObjectOutputStream out = new ObjectOutputStream(
@@ -129,19 +141,46 @@ public class Simulation implements Runnable {
 			out.newLine();
 			out.newLine();
 			out.write("                   ");
-			out.write(this.options.animal_zoo.get().toHeaderString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toHeaderString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Mean:              ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toMeanString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Between Variances: ");
-			out.write(this.options.animal_zoo.get().toBetweenVarianceString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toBetweenVarianceString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Within Variances:  ");
-			out.write(this.options.animal_zoo.get().toWithinVarianceString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toWithinVarianceString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Variances:         ");
-			out.write(this.options.animal_zoo.get().toVarianceString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toVarianceString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Convergence:       ");
-			out.write(this.options.animal_zoo.get().toPotentialScaleReductionString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toPotentialScaleReductionString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Weighting:         ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toEffectiveDataCountString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.newLine();
 			out.flush();
@@ -149,6 +188,80 @@ public class Simulation implements Runnable {
 			// TODO: Proper Error checking and control.
 			Logger.getLogger(Simulation.class.getName()).log(Level.SEVERE, null, ex);
 		}
+	}
+
+	private void discard() {
+		// Output to the other file
+//		try (ObjectOutputStream out = new ObjectOutputStream(
+//						new BufferedOutputStream(new FileOutputStream(checkpoint_file)))) {
+//			// TODO: Ensure that there is a header which contains the out.txt as a
+//			// binary file.
+//			out.writeObject(options);
+//			for (Walker w : walkers) {
+//				out.writeObject(w);
+//			}
+//		} catch (IOException ex) {
+//			// TODO: Proper Error checking and control.
+//			LOG.log(Level.SEVERE, null, ex);
+//			setRunning(false);
+//		}
+		// Write the output here for the different files that are important
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(out_file, true))) {
+			out.newLine();
+			out.write("Discard Reached");
+			// TODO: Some brief details to look at.
+			out.newLine();
+			out.newLine();
+			out.write("                   ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toHeaderString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Mean:              ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toRecentMeanString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Between Variances: ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toRecentBetweenVarianceString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Within Variances:  ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toRecentWithinVarianceString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Variances:         ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toRecentVarianceString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Convergence:       ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toRecentPotentialScaleReductionString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Weighting:         ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toRecentEffectiveDataCountString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.newLine();
+			out.flush();
+		} catch (IOException ex) {
+			// TODO: Proper Error checking and control.
+			Logger.getLogger(Simulation.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
+		this.tracked_quantities.stream().forEach((v) -> v.discard());
 	}
 
 	private void end() {
@@ -161,21 +274,49 @@ public class Simulation implements Runnable {
 			out.newLine();
 			out.newLine();
 			out.write("                   ");
-			out.write(this.options.animal_zoo.get().toHeaderString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toHeaderString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Mean:              ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toMeanString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Between Variances: ");
-			out.write(this.options.animal_zoo.get().toBetweenVarianceString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toBetweenVarianceString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Within Variances:  ");
-			out.write(this.options.animal_zoo.get().toWithinVarianceString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toWithinVarianceString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Variances:         ");
-			out.write(this.options.animal_zoo.get().toVarianceString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toVarianceString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.write("Convergence:       ");
-			out.write(this.options.animal_zoo.get().toPotentialScaleReductionString());
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toPotentialScaleReductionString())
+							.collect(Utils.TAB_JOINING));
+			out.newLine();
+			out.write("Weighting:         ");
+			out.write(this.tracked_quantities.stream()
+							.filter((v) -> v.isVisiblyTracked())
+							.map((v) -> v.toEffectiveDataCountString())
+							.collect(Utils.TAB_JOINING));
 			out.newLine();
 			out.newLine();
+			out.flush();
 			out.write(
 							"================================================================================");
 			out.newLine();
@@ -188,14 +329,23 @@ public class Simulation implements Runnable {
 	}
 
 	/**
-	 * Returns true if this iteration has reached a checkpoint and so should be
-	 * recorded as a restartable place.
+	 * Returns true if this iteration has reached a checkpoint or a discard point
+	 * and so should be recorded as a restartable place.
 	 *
 	 * @return If the iteration is a checkpoint
 	 */
-	private boolean reachedCheckpoint() {
+	private boolean reachedCheckpointOrDiscard() {
 		return options.checkpoint_no.get() > 0 && iteration % options.checkpoint_no
 						.get() == 0;
+	}
+
+	/**
+	 * Returns true if the iteration has reached a checkpoint
+	 *
+	 * @return
+	 */
+	private boolean reachedCheckpoint() {
+		return iteration > options.burn_in_no.get();
 	}
 
 	/**
@@ -221,11 +371,22 @@ public class Simulation implements Runnable {
 					throws IOException {
 		// Currently records to a simple file for the sake of getting data.
 		// TODO: Record here if the otpions.getRecordDetailedData() is set to true.
+		if (!data_file.exists()) {
+			try (BufferedWriter out
+							= new BufferedWriter(new FileWriter(data_file, data_file.exists()))) {
+				// TODO: Mismatch between tabbing for tracked quantities and data output by walkers.
+				out.write(this.tracked_quantities.stream().map((v) -> v
+								.toHeaderString()).collect(Utils.TAB_JOINING));
+				out.newLine();
+			}
+
+		}
 		try (BufferedWriter out
 						= new BufferedWriter(new FileWriter(data_file, data_file.exists()))) {
 			// Records the current state of the tracked values.
 			for (Walker walker : walkers) {
-				out.write(walker.toString());
+				out.write(walker.toStateString());
+				out.newLine();
 			}
 			out.newLine();
 		} catch (IOException ex) {
@@ -250,9 +411,10 @@ public class Simulation implements Runnable {
 
 		walkers.clear();
 		for (int i = 0; i < options.walker_no.get(); i++) {
-			walkers.add(new Walker(rng.nextLong(), options.animal_zoo.get().create(
-							options.pheromone_no.get())));
+			walkers.add(new Walker(rng.nextLong(), options.animal_zoo.get(), fitness,
+							tracked_calcs));
 		}
+		iteration_walkers.addAll(walkers);
 		for (int i = 0; i < threads.length; i++) {
 			threads[i] = new SimulationThread(this, iteration_walkers);
 			threads[i].start();
@@ -312,14 +474,19 @@ public class Simulation implements Runnable {
 			// TODO: Is not thread safe.
 			while (isRunning()) {
 				// TODO: Wait for empty?
-				if (iteration_walkers.isEmpty()) {
+				if (walkers.size() == walkers_done.get()) {
+					// WARNING: The walkers may not have been finished with yet!
 					iteration++;
+					walkers_done.set(0);
 					if (reachedRecord()) {
 						record();
 					}
-					if (reachedCheckpoint()) {
-						// TODO: Temporarily does nothing.
-						checkpoint();
+					if (reachedCheckpointOrDiscard()) {
+						if (reachedCheckpoint()) {
+							checkpoint();
+						} else {
+							discard();
+						}
 					}
 					if (reachedEnd()) {
 						end();

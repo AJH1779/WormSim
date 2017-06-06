@@ -32,10 +32,9 @@ public class SimulationThread implements Runnable {
 	 * @param sim     The simulation
 	 * @param walkers The walker deque the thread will walk.
 	 */
-	SimulationThread( Simulation sim,
-									  LinkedBlockingDeque<Walker> walkers) {
+	SimulationThread(Simulation sim,
+									 LinkedBlockingDeque<Walker> walkers) {
 		// TODO: Sort constructors better.
-		this.scoring_interface = new ScoringInterface(this);
 		this.scores = new HashMap<>(16);
 		this.sampling_interface = new SamplingInterface(
 						this);
@@ -50,29 +49,20 @@ public class SimulationThread implements Runnable {
 
 		this.pheromones = new double[sim.options.pheromone_no.get()];
 	}
-	
+
 	private final ConsumeInterface con_interface;
-	
 	private final DevelopmentInterface dev_interface;
 	private double food;
-	
 	private final TreeSet<AnimalGroup> groups;
-	
 	private final SimulationConditions init_conditions;
 	private final int iter_max;
 	private final double[] pheromones;
-	
 	private final SamplingInterface sampling_interface;
-	
 	private final HashMap<String, Double> scores;
-	
-	private final ScoringInterface scoring_interface;
-	
 	private final Simulation sim;
-	
 	private volatile Thread thread;
 	private double time;
-	
+	private Walker walker;
 	private final LinkedBlockingDeque<Walker> walkers;
 
 	/**
@@ -97,11 +87,12 @@ public class SimulationThread implements Runnable {
 	 *
 	 * @param walker The walker to run with.
 	 */
-	private void run( Walker walker) {
+	private void run(Walker walker) {
 		thread = Thread.currentThread();
-		scores.clear();
+		walker.tracked_quantities.forEach((v) -> v.initialise(walker.rng));
 		for (int i = 0; i < iter_max; i++) {
 			reset(walker);
+			walker.tracked_quantities.forEach((v) -> v.begin());
 			time = 0.0;
 			while (food > 0.0 && !groups.isEmpty()) {
 				AnimalGroup group = groups.first();
@@ -117,16 +108,19 @@ public class SimulationThread implements Runnable {
 					break;
 				}
 
+				// TODO: Is removed always pointless or not?
+				walker.tracked_quantities.forEach((w) -> w.removed(sampling_interface,
+								group));
 				groups.remove(group);
 				group.develop(dev_interface, walker.rng);
 			}
-			// Scoring with the remaining groups.
 			groups.forEach((g) -> {
-				g.score(scoring_interface);
+				walker.tracked_quantities.forEach((w) -> w
+								.ended(sampling_interface, g));
 			});
+			walker.tracked_quantities.forEach((w) -> w.end(sampling_interface));
 		}
-		double inv_num = 1.0 / iter_max;
-		walker.recordScores(scores, inv_num);
+		walker.tracked_quantities.forEach((v) -> v.finish());
 	}
 
 	public boolean isAlive() {
@@ -139,7 +133,7 @@ public class SimulationThread implements Runnable {
 			while (sim.isRunning()) {
 				try {
 					// WARNING: Arbitrary timeout, should this be adjusted?
-					Walker walker = walkers.poll(1000, TimeUnit.MILLISECONDS);
+					walker = walkers.poll(1000, TimeUnit.MILLISECONDS);
 					if (walker != null) {
 						if (!walker.isInitialised()) {
 							walker.initialise();
@@ -149,6 +143,8 @@ public class SimulationThread implements Runnable {
 						run(walker);
 						walker.check();
 						walker.thread = null;
+						walker = null;
+						sim.walkers_done.getAndIncrement();
 					}
 				} catch (InterruptedException ex) {
 					// Requires a check to see whether it should be ending the while loop.
@@ -177,10 +173,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class ConsumeInterface {
 
-		private ConsumeInterface( SimulationThread thread) {
+		private ConsumeInterface(SimulationThread thread) {
 			this.thread = thread;
 		}
-		
+
 		private final SimulationThread thread;
 
 		/**
@@ -223,10 +219,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class DevelopmentInterface {
 
-		private DevelopmentInterface( SimulationThread thread) {
+		private DevelopmentInterface(SimulationThread thread) {
 			this.thread = thread;
 		}
-		
+
 		private final SimulationThread thread;
 
 		/**
@@ -237,28 +233,14 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return True if the group was added.
 		 */
-		public boolean addGroup( AnimalGroup ag) {
+		public boolean addGroup(AnimalGroup ag) {
 			if (ag.getCount() < 1) {
 				return false;
 			}
+			thread.walker.tracked_quantities.forEach((w) -> {
+				w.added(thread.sampling_interface, ag);
+			});
 			return thread.groups.add(ag);
-		}
-
-		/**
-		 * Adds the specified score to the system.
-		 *
-		 * @param ref The key for the score
-		 * @param del The value of the score.
-		 *
-		 * @return True if added (always true)
-		 */
-		public boolean addScore( String ref, double del) {
-			if (thread.scores.containsKey(ref)) {
-				thread.scores.put(ref, thread.scores.get(ref) + del);
-			} else {
-				thread.scores.put(ref, del);
-			}
-			return true;
 		}
 
 		/**
@@ -301,20 +283,8 @@ public class SimulationThread implements Runnable {
 		 *
 		 * @return The sampling interface.
 		 */
-		
 		public SamplingInterface getSamplingInterface() {
 			return thread.sampling_interface;
-		}
-
-		/**
-		 * Returns a more restrictive interface which allows for scores to be
-		 * manipulated and visible parameters of the system to be checked.
-		 *
-		 * @return The scoring interface
-		 */
-		
-		public ScoringInterface getScoringInterface() {
-			return thread.scoring_interface;
 		}
 
 		/**
@@ -336,10 +306,10 @@ public class SimulationThread implements Runnable {
 	 */
 	public static class SamplingInterface {
 
-		private SamplingInterface( SimulationThread thread) {
+		private SamplingInterface(SimulationThread thread) {
 			this.thread = thread;
 		}
-		
+
 		private final SimulationThread thread;
 
 		/**
@@ -384,90 +354,5 @@ public class SimulationThread implements Runnable {
 		public double getTime() {
 			return thread.time;
 		}
-	}
-
-	/**
-	 * The interface used by animal groups at the end of the simulation. Allows
-	 * details of the system to be acquired and alterations to scores to be made.
-	 */
-	public static class ScoringInterface {
-
-		private ScoringInterface( SimulationThread thread) {
-			this.thread = thread;
-		}
-		
-		private final SimulationThread thread;
-
-		/**
-		 * Adds the specified score to the system.
-		 *
-		 * @param ref The key for the score
-		 * @param del The value of the score.
-		 *
-		 * @return True if added (always true)
-		 */
-		public boolean addScore( String ref, double del) {
-			if (thread.scores.containsKey(ref)) {
-				thread.scores.put(ref, thread.scores.get(ref) + del);
-			} else {
-				thread.scores.put(ref, del);
-			}
-			return true;
-		}
-
-		/**
-		 * Returns the amount of food in the system.
-		 *
-		 * @return The amount of food.
-		 */
-		public double getFood() {
-			return thread.food;
-		}
-
-		/**
-		 * Returns the amount of pheromone in the system.
-		 *
-		 * @param ref The pheromone reference
-		 *
-		 * @return The amount of pheromone
-		 */
-		public double getPheromone(int ref) {
-			if (ref < 0 || ref >= thread.pheromones.length) {
-				return 0.0;
-			} else {
-				return thread.pheromones[ref];
-			}
-		}
-
-		/**
-		 * Returns the number of pheromones that may be used in the system. The
-		 * pheromone references allowed are 0 to (1 - the returned value).
-		 *
-		 * @return The number of pheromone channels
-		 */
-		public int getPheromoneNumber() {
-			return thread.pheromones.length;
-		}
-
-		/**
-		 * Returns a more restrictive interface which only allows visible parameters
-		 * of the system to be checked.
-		 *
-		 * @return The sampling interface.
-		 */
-		
-		public SamplingInterface getSamplingInterface() {
-			return thread.sampling_interface;
-		}
-
-		/**
-		 * Returns the time the system has been running for.
-		 *
-		 * @return The run time.
-		 */
-		public double getTime() {
-			return thread.time;
-		}
-
 	}
 }

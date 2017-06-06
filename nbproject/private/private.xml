@@ -3,19 +3,29 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/default_input.txt</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalZoo.java</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/data/TrackedDouble.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/simulation/Walker.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/data/GroupDistribution.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/ChangingDouble.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalStage2Instance.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalZoo2Instance.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalDevelopment2Instance.java</file>
             <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/simulation/SimulationThread.java</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/data/TrackedValue.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/TrackedDouble.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/TrackedCalculation.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalGroup.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalStrain2.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/ConstantDouble.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/ConstantDoubleInstance.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/TrackedCalculationInstance.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalDevelopment2.java</file>
             <file>file:/C:/Data/GitHub/WormSim/out.txt</file>
             <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/simulation/Simulation.java</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/utils/Utils.java</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/Temporary.java</file>
-            <file>file:/C:/Data/GitHub/WormSim/input.txt</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/data/SimulationOptionSetting.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/TrackedDoubleInstance.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalZoo2.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalStage2.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/animals/AnimalStrain2Instance.java</file>
             <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/LaunchFromCodeMain.java</file>
-            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/data/SimulationOptions.java</file>
+            <file>file:/C:/Data/GitHub/WormSim/src/com/wormsim/tracking/ChangingDoubleInstance.java</file>
         </group>
     </open-files>
 </project-private>

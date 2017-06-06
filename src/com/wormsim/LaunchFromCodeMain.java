@@ -5,20 +5,24 @@
  */
 package com.wormsim;
 
-import com.wormsim.animals.AnimalDevelopment;
-import com.wormsim.animals.AnimalStage;
-import com.wormsim.animals.AnimalStrain;
-import com.wormsim.animals.AnimalZoo;
+import com.wormsim.animals.AnimalDevelopment2;
+import com.wormsim.animals.AnimalGroup;
+import com.wormsim.animals.AnimalStage2;
+import com.wormsim.animals.AnimalStage2Instance;
+import com.wormsim.animals.AnimalStrain2;
+import com.wormsim.animals.AnimalZoo2;
 import com.wormsim.data.SimulationCommands;
 import com.wormsim.data.SimulationConditions;
 import com.wormsim.data.SimulationOptions;
-import com.wormsim.data.TrackedDevelopmentFunction;
-import com.wormsim.data.TrackedDouble;
 import com.wormsim.simulation.Simulation;
 import com.wormsim.simulation.SimulationThread;
+import com.wormsim.tracking.ChangingDouble;
+import com.wormsim.tracking.ConstantDouble;
+import com.wormsim.tracking.TrackedCalculation;
+import com.wormsim.tracking.TrackedDouble;
+import com.wormsim.tracking.TrackedDoubleInstance;
 import com.wormsim.utils.Utils;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,42 +41,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 public class LaunchFromCodeMain {
 	private static final Logger LOG = Logger.getLogger(LaunchFromCodeMain.class
 					.getName());
-
-	private static AnimalZoo makeCustomAnimalZoo() {
-		AnimalZoo zoo = new AnimalZoo();
-		AnimalStrain strain = new AnimalStrain("TestStrain", 0);
-		AnimalStage[] stages = {
-			new AnimalStage("L1", strain, 1.0, 1.0, 1.0),
-			new AnimalStage("L2", strain, 1.0, 1.0, 1.0),
-			new AnimalStage("L2d", strain, 1.0, 1.0, 1.0),
-			new AnimalStage("Dauer", strain, 0.0, 0.0, 0.0)
-		};
-		AnimalDevelopment[] devs = {
-			new AnimalDevelopment.Branching(stages[0], stages[1], stages[2],
-			new DauerBranchDevFunction1()),
-			new AnimalDevelopment.Laying(stages[1], null, stages[0],
-			(p_iface, p_count, p_rng) -> {
-				return p_count * 100;
-			}),
-			new AnimalDevelopment.Linear(stages[2], stages[3],
-			(p_iface, p_count, p_rng) -> {
-				return p_count;
-			}),
-			new AnimalDevelopment.Scoring(stages[3], (p_iface, p_count) -> {
-				p_iface.addScore(stages[3].getFullName(), p_count);
-			})
-		};
-		zoo.addAnimalStrain(strain);
-		for (AnimalStage teststage : stages) {
-			zoo.addAnimalStage(teststage);
-		}
-		for (AnimalDevelopment dev : devs) {
-			zoo.addAnimalDevelopment(dev);
-		}
-		AnimalZoo.Immutable copy = zoo.copy();
-		copy.stopAffectingVariance();
-		return copy;
-	}
+	public static final int CHECKPOINT_NUMBER = 500;
 
 	private static SimulationConditions makeCustomInitialConditions() {
 		HashMap<String, IntegerDistribution> map = new HashMap<>();
@@ -80,7 +49,8 @@ public class LaunchFromCodeMain {
 		map.put("TestStrain L2", new EnumeratedIntegerDistribution(new int[]{1}));
 
 		return new SimulationConditions(
-						new NormalDistribution(10000.0, 1000.0),
+						new ConstantRealDistribution(10000.0),
+						// new NormalDistribution(1000.0, 200.0),
 						new RealDistribution[]{
 							new ConstantRealDistribution(0.0)
 						},
@@ -90,128 +60,211 @@ public class LaunchFromCodeMain {
 
 	public static void main(String[] args)
 					throws IOException {
+		// TODO: Move this from utils into SimulationCommands itself.
 		SimulationCommands cmds = Utils.readCommandLine(args);
 		SimulationOptions ops = new SimulationOptions(cmds);
 
 		// Change options here.
-		ops.animal_zoo.set(makeCustomAnimalZoo());
+		ops.checkpoint_no.set(CHECKPOINT_NUMBER);
+		ops.thread_no.set(4);
 		ops.assay_iteration_no.set(100);
-		ops.burn_in_no.set(50000);
-		ops.record_no.set(100000);
-		ops.checkpoint_no.set(10000);
+		ops.burn_in_no.set(20000);
+		ops.record_no.set(40000);
 		ops.detailed_data.set(Boolean.TRUE);
-		ops.initial_conditions.set(makeCustomInitialConditions());
-		ops.walker_no.set(1024);
+		ops.walker_no.set(32);
 		ops.pheromone_no.set(1);
 		ops.forced_run.set(Boolean.TRUE);
+		ops.initial_conditions.set(makeCustomInitialConditions());
+		ops.animal_zoo.set(makeCustomAnimalZoo(ops));
 
+		// TODO: Add in the options for additional tracked values.
 		if (ops.isMissingParameters()) {
 			String msg = "Missing Parameters: " + ops.getMissingParametersList();
 			LOG.log(Level.SEVERE, msg);
 			System.exit(-1);
 		} else {
-			new Simulation(ops).run();
+			new Simulation(ops, new TrackedCalculation("Fitness", ops) {
+				@Override
+				protected double added(SimulationThread.SamplingInterface p_iface,
+															 AnimalGroup p_group, double p_prev_value) {
+					return p_prev_value
+									+ (p_group.getAnimalStage().toString().contains("Dauer")
+									? p_group.getCount()
+									: 0.0);
+				}
+
+				@Override
+				protected double end(SimulationThread.SamplingInterface p_iface,
+														 double p_prev_value) {
+					return Math.pow(p_prev_value, 2);
+				}
+
+				@Override
+				protected double ended(SimulationThread.SamplingInterface p_iface,
+															 AnimalGroup p_group, double p_prev_value) {
+					return p_prev_value;
+				}
+
+				@Override
+				protected double initialise(RandomGenerator p_rng) {
+					return 0.0;
+				}
+
+				@Override
+				protected double removed(SimulationThread.SamplingInterface p_iface,
+																 AnimalGroup p_group, double p_prev_value) {
+					return p_prev_value;
+				}
+			}, new TrackedCalculation[]{
+				new TrackedCalculation("Dauers", ops) {
+					@Override
+					protected double added(SimulationThread.SamplingInterface p_iface,
+																 AnimalGroup p_group, double p_prev_value) {
+						return p_prev_value
+										+ (p_group.getAnimalStage().toString().contains("Dauer")
+										? p_group.getCount()
+										: 0.0);
+					}
+
+					@Override
+					protected double end(SimulationThread.SamplingInterface p_iface,
+															 double p_prev_value) {
+						return p_prev_value;
+					}
+
+					@Override
+					protected double ended(SimulationThread.SamplingInterface p_iface,
+																 AnimalGroup p_group, double p_prev_value) {
+						return p_prev_value;
+					}
+
+					@Override
+					protected double initialise(RandomGenerator p_rng) {
+						return 0.0;
+					}
+
+					@Override
+					protected double removed(SimulationThread.SamplingInterface p_iface,
+																	 AnimalGroup p_group, double p_prev_value) {
+						return p_prev_value;
+					}
+				}
+			}
+			).run();
 		}
 	}
 
-	private static class DauerBranchDevFunction1 implements
-					TrackedDevelopmentFunction {
+	public static AnimalZoo2 makeCustomAnimalZoo(SimulationOptions ops) {
+		AnimalZoo2 zoo = new AnimalZoo2();
+		AnimalStrain2 strain = new AnimalStrain2(zoo, "TestStrain");
+		@SuppressWarnings("MismatchedReadAndWriteOfArray")
+		AnimalStage2[] stages = {
+			new AnimalStage2("L1", strain, new ConstantDouble("Food", 1.0),
+			new ConstantDouble("Dev", 1.0),
+			new ConstantDouble[]{new ConstantDouble("Phero1", 1.0)}),
+			new AnimalStage2("L2", strain, new ConstantDouble("Food", 1.0),
+			new ConstantDouble("Dev", 1.0),
+			new ConstantDouble[]{new ConstantDouble("Phero1", 1.0)}),
+			new AnimalStage2("L2d", strain, new ConstantDouble("Food", 1.0),
+			new ConstantDouble("Dev", 1.0),
+			new ConstantDouble[]{new ConstantDouble("Phero1", 1.0)}),
+			new AnimalStage2("Dauer", strain, new ConstantDouble("Food", 0.0),
+			new ConstantDouble("Dev", 0.0),
+			new ConstantDouble[]{new ConstantDouble("Phero1", 0.0)})
+		};
+		@SuppressWarnings("MismatchedReadAndWriteOfArray")
+		AnimalDevelopment2[] devs = {
+			new DauerDevelopment(ops, stages[0], stages[1], stages[2]),
+			new AnimalDevelopment2.ExplosiveLaying(stages[1],
+			stages[0], new ConstantDouble("Fecundity", 100.0)),
+			new AnimalDevelopment2.Linear(stages[2], stages[3]),
+			new DauerScoring(stages[3])
+		};
+		return zoo;
+	}
+
+	public static class DauerDevelopment extends AnimalDevelopment2 {
 		private static final long serialVersionUID = 1L;
 
-		DauerBranchDevFunction1() {
-			for (int i = 0; i < values.length; i++) {
-				values[i] = new TrackedDouble(0.0);
-			}
-		}
-		private final TrackedDouble[] values = new TrackedDouble[1];
+		public DauerDevelopment(
+						SimulationOptions ops,
+						AnimalStage2 actor,
+						AnimalStage2 repro,
+						AnimalStage2 dauer) {
+			super(actor, new ChangingDouble[]{
+				new ChangingDouble("DD A", ops) {
+					@Override
+					protected double evolve(double p_val, RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 0.1;
+					}
 
-		@Override
-		public int applyAsInt(SimulationThread.SamplingInterface p_iface,
-													int p_count, RandomGenerator p_rng) {
-			double prob = Utils.logistic(values[0].get());
-			return new BinomialDistribution(p_rng, p_count, prob).sample();
-		}
+					@Override
+					protected double initialise(RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 5.0;
+					}
+				},
+				new ChangingDouble("DD B", ops) {
+					@Override
+					protected double evolve(double p_val, RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 0.1;
+					}
 
-		@Override
-		public TrackedDevelopmentFunction copy() {
-			DauerBranchDevFunction1 that = new DauerBranchDevFunction1();
-			for (int i = 0; i < values.length; i++) {
-				that.values[i] = this.values[i].copy();
-			}
-			return that;
-		}
+					@Override
+					protected double initialise(RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 5.0;
+					}
+				},
+				new ChangingDouble("DD C", ops) {
+					@Override
+					protected double evolve(double p_val, RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 0.1;
+					}
 
-		@Override
-		public void evolve(RandomGenerator p_rng) {
-			for (TrackedDouble value : values) {
-				value.evolve(p_rng);
-			}
-		}
+					@Override
+					protected double initialise(RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 5.0;
+					}
+				},
+				new ChangingDouble("DD D", ops) {
+					@Override
+					protected double evolve(double p_val, RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 0.1;
+					}
 
-		@Override
-		public void initialise(RandomGenerator p_rng) {
-			for (TrackedDouble value : values) {
-				value.initialise(p_rng);
-			}
-		}
-
-		@Override
-		public void retain() {
-			for (TrackedDouble value : values) {
-				value.retain();
-			}
-		}
-
-		@Override
-		public void revert() {
-			for (TrackedDouble value : values) {
-				value.revert();
-			}
-		}
-
-		@Override
-		public boolean stopAffectingVariance() {
-			return Arrays.stream(values).reduce(false, (a, b) -> a || b
-							.stopAffectingVariance(), (a, b) -> a || b);
+					@Override
+					protected double initialise(RandomGenerator p_rng) {
+						return p_rng.nextGaussian() * 5.0;
+					}
+				}
+			}, new AnimalStage2[]{repro, dauer});
 		}
 
 		@Override
-		public String toBetweenVarianceString() {
-			return Arrays.stream(values).map((v) -> v.toBetweenVarianceString())
-							.collect(Utils.TAB_JOINING);
+		public void apply(SimulationThread.DevelopmentInterface p_iface, int p_count,
+											RandomGenerator p_rng, TrackedDoubleInstance[] p_values,
+											AnimalStage2Instance[] p_stages) {
+			// double prob = Utils.logistic(values[0].get());
+			double prob = Utils.logistic(p_values[0].get()) / (1.0
+							+ Math.abs(p_values[1].get())
+							* Math.pow(p_iface.getFood(), p_values[2].get())
+							* Math.pow(p_iface.getPheromone(0), p_values[3].get()));
+			int count = new BinomialDistribution(p_rng, p_count, prob).sample();
+			p_iface.addGroup(new AnimalGroup(p_stages[0], p_count - count));
+			p_iface.addGroup(new AnimalGroup(p_stages[1], count));
+		}
+	}
+
+	public static class DauerScoring extends AnimalDevelopment2 {
+		public DauerScoring(AnimalStage2 actor) {
+			super(actor, new TrackedDouble[0], new AnimalStage2[0]);
 		}
 
 		@Override
-		public String toCurrentValueString() {
-			return Arrays.stream(values).map((v) -> v.toCurrentValueString())
-							.collect(Utils.TAB_JOINING);
-		}
+		public void apply(SimulationThread.DevelopmentInterface p_iface, int p_count,
+											RandomGenerator p_rng, TrackedDoubleInstance[] p_values,
+											AnimalStage2Instance[] p_stages) {
 
-		@Override
-		public String toHeaderString() {
-			return Arrays.stream(values).map((v) -> v.toHeaderString())
-							.collect(Utils.TAB_JOINING);
 		}
-
-		@Override
-		public String toPotentialScaleReductionString() {
-			return Arrays.stream(values).map((v) -> v
-							.toPotentialScaleReductionString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toVarianceString() {
-			return Arrays.stream(values).map((v) -> v.toVarianceString())
-							.collect(Utils.TAB_JOINING);
-		}
-
-		@Override
-		public String toWithinVarianceString() {
-			return Arrays.stream(values).map((v) -> v.toWithinVarianceString())
-							.collect(Utils.TAB_JOINING);
-		}
-
 	}
 
 }

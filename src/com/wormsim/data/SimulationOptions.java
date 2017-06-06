@@ -5,8 +5,9 @@
  */
 package com.wormsim.data;
 
+import com.wormsim.LaunchFromCodeMain;
 import com.wormsim.Temporary;
-import com.wormsim.animals.AnimalZoo;
+import com.wormsim.animals.AnimalZoo2;
 import com.wormsim.utils.Utils;
 import static com.wormsim.utils.Utils.ASSIGNMENT_PATTERN;
 import java.io.File;
@@ -110,8 +111,6 @@ public final class SimulationOptions implements Serializable {
 		// Initialise the variables for quick access.
 		// Additional variables can be created for access through the settings
 		// object, if a hack is being employed or something like that.
-		this.animal_zoo = new SimulationOptionSetting<>(this, ANIMAL_ZOO,
-						AnimalZoo::read, Temporary.CODED_ANIMAL_ZOO);
 		this.assay_iteration_no = new SimulationOptionSetting<>(this,
 						ASSAY_ITERATION_NO, Utils::readInteger, null, (Integer i) -> i > 0);
 		this.burn_in_no = new SimulationOptionSetting<>(this, BURN_IN_NO,
@@ -145,11 +144,15 @@ public final class SimulationOptions implements Serializable {
 		this.directory = p_commands.getDirectory();
 		this.input = new File(p_commands.getDirectory(), INPUT_TXT);
 		this.cmds = p_commands;
+
+		// Has to occur last because of the need to reference checkpoint no.
+		this.animal_zoo = new SimulationOptionSetting<>(this, ANIMAL_ZOO,
+						AnimalZoo2::read, LaunchFromCodeMain.makeCustomAnimalZoo(this));
 	}
 
 	// NOTE: These are made public for the sake of efficiency at the cost of security.
 	// The objects themselves should be made secure.
-	public final SimulationOptionSetting<AnimalZoo> animal_zoo;
+	public final SimulationOptionSetting<AnimalZoo2> animal_zoo;
 	public final SimulationOptionSetting<Integer> assay_iteration_no;
 	public final SimulationOptionSetting<Integer> burn_in_no;
 	public final SimulationOptionSetting<Integer> checkpoint_no;

@@ -79,7 +79,7 @@ public class ChangingDoubleInstance extends TrackedDoubleInstance {
 	 */
 	@Override
 	public void evolve(RandomGenerator p_rng) {
-		this.current_value = parent.evolve(this.current_value, p_rng);
+		this.current_value += parent.evolve(this.current_value, p_rng);
 	}
 
 	/**

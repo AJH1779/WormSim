@@ -66,7 +66,7 @@ public class LaunchFromCodeMain {
 
 		// Change options here.
 		ops.checkpoint_no.set(CHECKPOINT_NUMBER);
-		ops.thread_no.set(4);
+		ops.thread_no.set(3);
 		ops.assay_iteration_no.set(100);
 		ops.burn_in_no.set(20000);
 		ops.record_no.set(40000);
@@ -200,7 +200,7 @@ public class LaunchFromCodeMain {
 
 					@Override
 					protected double initialise(RandomGenerator p_rng) {
-						return p_rng.nextGaussian() * 5.0;
+						return p_rng.nextGaussian() * 0.5 + 0.7;
 					}
 				},
 				new ChangingDouble("DD B", ops) {
@@ -211,7 +211,7 @@ public class LaunchFromCodeMain {
 
 					@Override
 					protected double initialise(RandomGenerator p_rng) {
-						return p_rng.nextGaussian() * 5.0;
+						return p_rng.nextGaussian() * 2.0 + 4.4;
 					}
 				},
 				new ChangingDouble("DD C", ops) {
@@ -222,7 +222,7 @@ public class LaunchFromCodeMain {
 
 					@Override
 					protected double initialise(RandomGenerator p_rng) {
-						return p_rng.nextGaussian() * 5.0;
+						return p_rng.nextGaussian() * 5.0 - 13;
 					}
 				},
 				new ChangingDouble("DD D", ops) {
@@ -233,7 +233,7 @@ public class LaunchFromCodeMain {
 
 					@Override
 					protected double initialise(RandomGenerator p_rng) {
-						return p_rng.nextGaussian() * 5.0;
+						return p_rng.nextGaussian() * 3.0 - 5;
 					}
 				}
 			}, new AnimalStage2[]{repro, dauer});
